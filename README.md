@@ -13,6 +13,7 @@ _DaMi is a AI agent specialized in Data Mining. He particularly likes clustering
   - [NGROK authentication token](#ngrok-authentication-token)
   - [Kaggle notebook upload](#kaggle-notebook-upload)
 - [How to](#how-to) &larr; &larr; &larr; Your cookbook to complete the assignment
+  - [Edit the system prompt](#edit-the-system-prompt)
   - [Add a new dataset](#add-a-dataset)
   - [Add a new tool](#add-a-tool)
   - [Test your tools without DaMi](#test-your-tools-without-dami)
@@ -79,6 +80,9 @@ Edit the value by pasting the authentication token from the previous step. Make 
 ## How to
 This section provides instructions on how to perform various tasks in order to help DaMi get access to high-quality, well-explained tools.
 
+### Edit the system prompt
+The system prompt is defined in the `src/agent/system_prompt.py`. Feel free to experiment with different variations of the system prompt. Make sure to restart your agent for the changes to take effect.
+
 ### Add a dataset
 **PENDING**
 
@@ -94,7 +98,10 @@ _Hint:_ You might need to change more than one files to make your tool visible t
 From inside the `src/` directory run  `uv run mcp dev mcp_server.py` in a terminal. If this is the first time you run this command, you may
 be asked to install some packages. Type `y` and hit enter. You must see a web interface in your browser. 
 Click _Connect_ &rarr; _Tools_ &rarr; _List Tools_. You must see all available tools. Select the one you want to test and fill in the parameters.
-Click _Invoke_ to call the tool (as if you were DaMi) and see the output. Debug your tool if the output does not match your expectations.
+Click _Run tool_ to call the tool (as if you were DaMi) and see the output. Debug your tool if the output does not match your expectations. 
+
+**Note**: We have added a dummy `add` tool, in case you want a quick verification that your MCP server works. Once you set everything up, feel
+free to remove this tool (or even the whole `src/tools/math/` directory).
 
 ### Improve the description of a tool
 All tools that DaMi has access to are placed in the `src/tools/` directory of the project. They are further organized into sub-directories based on
