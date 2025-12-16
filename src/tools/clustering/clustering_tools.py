@@ -4,6 +4,7 @@ import os
 from typing import Dict, Any
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.preprocessing import StandardScaler
+from sklearn.mixture import BayesianGaussianMixture
 
 from tools.data_loading.data_loading_utils import _load_data_from_file
 
@@ -265,3 +266,126 @@ def register_clustering_tools(mcp):
             }
         except Exception as e:
             return {"error": f"DBSCAN clustering failed: {str(e)}"}
+
+    @mcp.tool()
+    def bayesian_gaussian_mixture(file_path: str, n_components: int = 3, covariance_type: str = 'full',
+                                  weight_concentration_prior_type: str = 'dirichlet_process',
+                                  random_state: int = 42) -> Dict[str, Any]:
+        """
+        Perform Bayesian Gaussian Mixture clustering on data from a file.
+
+        Uses `sklearn.mixture.BayesianGaussianMixture` which provides a probabilistic mixture
+        model with automatic complexity selection via a Dirichlet process prior.
+
+        PROS:
+        - Can infer effective number of components
+        - Probabilistic assignments (soft clustering)
+        - Robust to over-specifying `n_components`
+
+        CONS:
+        - More computationally expensive than K-means
+        - Requires careful prior/parameter choices for some datasets
+
+        BEST USE CASES:
+        - When the true number of clusters is unknown and the model should infer complexity
+        - When soft (probabilistic) cluster assignments are required
+        - Datasets with overlapping clusters or varying cluster sizes/densities
+        - When you may over-specify `n_components` and want the model to prune unused components
+        - As a generative/density model for sampling or anomaly scoring
+
+        AVOID WHEN:
+        - Working with very large datasets where runtime and memory are constrained
+        - High-dimensional data without prior dimensionality reduction
+        - You need extremely fast, deterministic hard-centroid clustering (use K-means)
+        - You cannot or do not want to tune priors or spend time validating model selection
+        - When data contains strong density variations or noise that may mislead the mixture model
+
+        Args:
+            file_path: Path to CSV file containing the dataset
+            n_components: Maximum number of mixture components to consider
+            covariance_type: Type of covariance ('full', 'tied', 'diag', 'spherical')
+            weight_concentration_prior_type: 'dirichlet_process' or 'dirichlet_distribution'
+            random_state: Random seed for reproducibility
+
+        Returns:
+            Dictionary with clustering results, metadata, and saved result file path
+        """
+        try:
+            data_array = _load_data_from_file(file_path)
+
+            # Standardize the data
+            scaler = StandardScaler()
+            data_scaled = scaler.fit_transform(data_array)
+
+            # Fit Bayesian Gaussian Mixture
+            bgm = BayesianGaussianMixture(
+                n_components=n_components,
+                covariance_type=covariance_type,
+                weight_concentration_prior_type=weight_concentration_prior_type,
+                random_state=random_state
+            )
+            bgm.fit(data_scaled)
+
+            # Hard labels via MAP assignment
+            labels = bgm.predict(data_scaled)
+
+            # Soft assignment probabilities
+            probs = bgm.predict_proba(data_scaled)
+            max_probs = probs.max(axis=1)
+
+            # Effective components (weights above small threshold)
+            effective_components = int((bgm.weights_ > 1e-3).sum())
+
+            # Transform component means back to original scale
+            means_scaled = bgm.means_
+            try:
+                means = scaler.inverse_transform(means_scaled)
+            except Exception:
+                means = means_scaled
+
+            # Create reports directory and save results
+            os.makedirs('reports', exist_ok=True)
+            base_name = os.path.splitext(os.path.basename(file_path))[0]
+            results_file = f"reports/{base_name}_bayesian_gmm_results.csv"
+
+            results_df = pd.DataFrame({
+                'point_id': range(len(labels)),
+                'cluster_label': labels,
+                'x': data_array[:, 0],
+                'y': data_array[:, 1],
+                'max_probability': max_probs,
+                'source_file': file_path,
+                'algorithm': 'BayesianGaussianMixture'
+            })
+
+            results_df.to_csv(results_file, index=False)
+
+            # Save metadata
+            metadata_file = results_file.replace('.csv', '_metadata.txt')
+            with open(metadata_file, 'w') as f:
+                f.write(f"Algorithm: BayesianGaussianMixture\n")
+                f.write(f"Source file: {file_path}\n")
+                f.write(f"Requested components: {n_components}\n")
+                f.write(f"Effective components: {effective_components}\n")
+                f.write(f"Covariance type: {covariance_type}\n")
+                f.write(f"Weight concentration prior type: {weight_concentration_prior_type}\n")
+                f.write(f"Converged: {getattr(bgm, 'converged_', 'Unknown')}\n")
+                f.write(f"Weights: {bgm.weights_.tolist()}\n")
+                f.write(f"Means (original scale): {means.tolist()}\n")
+
+            return {
+                "success": True,
+                "algorithm": "BayesianGaussianMixture",
+                "source_file": file_path,
+                "results_file": os.path.abspath(results_file),
+                "n_components_requested": n_components,
+                "effective_components": effective_components,
+                "file_size_bytes": os.path.getsize(results_file),
+                "message": f"Bayesian GMM clustering completed. Results saved to {results_file}",
+                "summary": {
+                    "clusters_found": effective_components,
+                    "soft_assignments": True
+                }
+            }
+        except Exception as e:
+            return {"error": f"Bayesian GMM clustering failed: {str(e)}"}
