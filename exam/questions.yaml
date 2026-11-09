@@ -1,4 +1,4 @@
-# The DaMi Exam: the same questions after every case, so that you can measure progress.
+# The DaMi Exam: the same questions after every step, so that you can measure progress.
 # `dami exam --tag baseline` runs all of them (each in a new conversation) and writes a
 # summary table to runs/. YOU decide if each answer is right: fill the "correct" column.
 # You may add questions, but do not change the existing ones (keep the comparison fair).
