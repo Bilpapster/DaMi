@@ -1,0 +1,528 @@
+{
+  "uid": "dami-cockpit",
+  "title": "DaMi cockpit",
+  "tags": [
+    "dami"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "model",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dami-vm"
+        },
+        "query": "label_values(dami_run_duration_seconds, model)",
+        "includeAll": true,
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "allValue": ".*",
+        "refresh": 2
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Runs",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "Questions answered in the time range.",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time(dami_run_duration_seconds{model=~\"$model\"}[$__range]))",
+          "legendFormat": "runs",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          },
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 2,
+      "title": "Tool calls",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "",
+      "gridPos": {
+        "x": 4,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time(dami_tool_call_duration_seconds{model=~\"$model\"}[$__range]))",
+          "legendFormat": "tool calls",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          },
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 3,
+      "title": "Tool calls with status=error",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "Status as reported by the MCP protocol. Is a tool that returns {\"error\": ...} counted here?",
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time(dami_tool_call_duration_seconds{model=~\"$model\",status=\"error\"}[$__range])) or vector(0)",
+          "legendFormat": "errors",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          },
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 4,
+      "title": "Avg run latency",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg(avg_over_time(dami_run_duration_seconds{model=~\"$model\"}[$__range]))",
+          "legendFormat": "s",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          },
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 5,
+      "title": "Max input tokens in one model call",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "Compare with the context window of the server.",
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max(max_over_time(dami_model_input_tokens{model=~\"$model\"}[$__range]))",
+          "legendFormat": "tokens",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          },
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 6,
+      "title": "num_ctx requested by DaMi",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "0 means: DaMi did not ask for a context size, so the Ollama server default applies.",
+      "gridPos": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max(max_over_time(dami_context_limit_tokens{model=~\"$model\"}[$__range]))",
+          "legendFormat": "tokens",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          },
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 7,
+      "title": "Input tokens per model call",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "Each point is one call to the LLM. A flat ceiling is a hint.",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dami_model_input_tokens{model=~\"$model\"}",
+          "legendFormat": "{{session}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "points",
+            "pointSize": 6,
+            "showPoints": "always"
+          }
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 8,
+      "title": "Model call latency",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dami_model_call_duration_seconds{model=~\"$model\"}",
+          "legendFormat": "{{stop_reason}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "points",
+            "pointSize": 6,
+            "showPoints": "always"
+          }
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 9,
+      "title": "Tool calls by tool",
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (tool) (count_over_time(dami_tool_call_duration_seconds{model=~\"$model\"}[$__range]))",
+          "legendFormat": "{{tool}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          },
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient"
+      }
+    },
+    {
+      "id": 10,
+      "title": "Avg tool latency by tool",
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "",
+      "gridPos": {
+        "x": 8,
+        "y": 12,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "avg by (tool) (avg_over_time(dami_tool_call_duration_seconds{model=~\"$model\"}[$__range]))",
+          "legendFormat": "{{tool}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          },
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient"
+      }
+    },
+    {
+      "id": 11,
+      "title": "Model calls and tool calls per run",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "",
+      "gridPos": {
+        "x": 16,
+        "y": 12,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dami_run_model_calls{model=~\"$model\"}",
+          "legendFormat": "model calls",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "dami_run_tool_calls{model=~\"$model\"}",
+          "legendFormat": "tool calls",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "points",
+            "pointSize": 6,
+            "showPoints": "always"
+          }
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 12,
+      "title": "Output tokens per model call",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "",
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dami_model_output_tokens{model=~\"$model\"}",
+          "legendFormat": "{{session}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "points",
+            "pointSize": 6,
+            "showPoints": "always"
+          }
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 13,
+      "title": "Run latency",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dami-vm"
+      },
+      "description": "",
+      "gridPos": {
+        "x": 12,
+        "y": 21,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dami_run_duration_seconds{model=~\"$model\"}",
+          "legendFormat": "{{session}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dami-vm"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "points",
+            "pointSize": 6,
+            "showPoints": "always"
+          }
+        },
+        "overrides": []
+      },
+      "options": {}
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+# DaMi's "database": one entry per table. Each table is a CSV file in this folder.
+# To add a table: put <name>.csv here and add an entry below.
+customers:
+  description: Customer demographics of an online shop.
+  columns:
+    age: Age of the customer in years.
+    annual_income_eur: Yearly income of the customer in EUR.
+  notes: Contains 3 well-separated customer segments.
+
+products:
+  description: Product catalogue with sales performance.
+  columns:
+    price_eur: Retail price of the product in EUR.
+    monthly_sales_units: Units sold per month.
+  notes: Product families with different price and sales profiles.
+
+marketing:
+  description: Results of past marketing campaigns.
+  columns:
+    reach_people: Number of people who saw the campaign.
+    engagement_rate: Share of reached people who clicked or replied.
+  notes: Campaign effectiveness with clear audience segments.
+
+sensors:
+  description: Sensor readings from the hydraulic presses of a factory, one row per minute.
+  columns:
+    temperature_c: Oil temperature in degrees Celsius.
+    pressure_kpa: Hydraulic pressure in kPa.
+  notes: Equipment states with operational patterns.
+
+transactions:
+  description: Card transactions of a bank, one row per transaction.
+  columns:
+    amount_eur: Amount of the transaction in EUR.
+    tx_per_day: Average number of transactions per day of the same card.
+  notes: Transaction patterns with frequency variations.

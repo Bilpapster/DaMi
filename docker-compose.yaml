@@ -1,0 +1,176 @@
+# DaMi observability stack. Start it with the `dami obs` commands (see README):
+#
+#   dami obs init            # once: writes random passwords and keys into .env
+#   dami obs up              # metrics: VictoriaMetrics + Grafana   (light, ~300 MB RAM)
+#   dami obs up --traces     # + Langfuse for traces                 (heavier, ~4 GB RAM)
+#   dami obs down
+#
+# Every published port is bound to 127.0.0.1: only your own computer can open these
+# services. The databases of Langfuse are not published at all; only Langfuse uses them.
+# Passwords are never written in this file: they come from .env (`dami obs init`).
+
+name: dami
+
+
+services:
+  # ---------------------------------------------------------------- metrics
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.155.0
+    profiles: [metrics]
+    command:
+      - "-retentionPeriod=30d"
+      - "-search.latencyOffset=0s"
+    ports:
+      - "127.0.0.1:8428:8428"
+    volumes:
+      - vm_data:/victoria-metrics-data
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.3.0
+    profiles: [metrics]
+    depends_on: [victoriametrics]
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?run `dami obs init` first}
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/dami-cockpit.json
+    ports:
+      - "127.0.0.1:3001:3000"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
+  # ----------------------------------------------------------------- traces
+  langfuse-web:
+    image: docker.langfuse.com/langfuse/langfuse:4
+    profiles: [traces]
+    depends_on: &langfuse-deps
+      postgres: { condition: service_healthy }
+      clickhouse: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment: &langfuse-env
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:?run `dami obs init` first}
+      SALT: ${LANGFUSE_SALT:?run `dami obs init` first}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:?run `dami obs init` first}
+      TELEMETRY_ENABLED: "false"
+      DATABASE_URL: postgresql://postgres:${LANGFUSE_POSTGRES_PASSWORD:?run `dami obs init` first}@postgres:5432/postgres
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD:?run `dami obs init` first}
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_AUTH: ${LANGFUSE_REDIS_PASSWORD:?run `dami obs init` first}
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${LANGFUSE_MINIO_PASSWORD:?run `dami obs init` first}
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${LANGFUSE_MINIO_PASSWORD:?run `dami obs init` first}
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+      # Created at first start: one organisation, one project with fixed API keys, one user.
+      LANGFUSE_INIT_ORG_ID: dami-org
+      LANGFUSE_INIT_ORG_NAME: DaMi Detective Agency
+      LANGFUSE_INIT_PROJECT_ID: dami
+      LANGFUSE_INIT_PROJECT_NAME: DaMi
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_INIT_PROJECT_PUBLIC_KEY:?run `dami obs init` first}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_INIT_PROJECT_SECRET_KEY:?run `dami obs init` first}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-detective@dami.local}
+      LANGFUSE_INIT_USER_NAME: Detective
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:?run `dami obs init` first}
+    restart: unless-stopped
+
+  langfuse-worker:
+    image: docker.langfuse.com/langfuse/langfuse-worker:4
+    profiles: [traces]
+    depends_on: *langfuse-deps
+    environment: *langfuse-env
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17
+    profiles: [traces]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${LANGFUSE_POSTGRES_PASSWORD:?run `dami obs init` first}
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - langfuse_postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:26.3.62.3
+    profiles: [traces]
+    user: "101:101"
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD:?run `dami obs init` first}
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - langfuse_clickhouse:/var/lib/clickhouse
+      - langfuse_clickhouse_logs:/var/log/clickhouse-server
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    profiles: [traces]
+    command: ["redis-server", "--requirepass", "${LANGFUSE_REDIS_PASSWORD:?run `dami obs init` first}", "--maxmemory-policy", "noeviction"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${LANGFUSE_REDIS_PASSWORD}", "ping"]
+      interval: 3s
+      timeout: 10s
+      retries: 20
+    volumes:
+      - langfuse_redis:/data
+    restart: unless-stopped
+
+  minio:
+    image: cgr.dev/chainguard/minio
+    profiles: [traces]
+    entrypoint: sh
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: ${LANGFUSE_MINIO_PASSWORD:?run `dami obs init` first}
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - langfuse_minio:/data
+    restart: unless-stopped
+
+volumes:
+  vm_data:
+  grafana_data:
+  langfuse_postgres:
+  langfuse_clickhouse:
+  langfuse_clickhouse_logs:
+  langfuse_redis:
+  langfuse_minio:

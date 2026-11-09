@@ -1,164 +1,99 @@
-# DaMi: Your Intelligent DAta MIning Companion 🤖
+# 🕵️ DaMi: Demystifying a dAta mIning AI Agent
 
-_DaMi is a AI agent specialized in Data Mining. He particularly likes clustering and outlier detection!_
+👋 Hi and welcome to the 2026-2027 assignment of the _Data Science Principles_ Course at the [School of Informatics, AUTh](https://csd.auth.gr/en/home/)! 
 
-**DaMi needs your help! Can you provide him with high-quality, well-explained tools?** Keep reading to learn how you can lend a hand!
+This is the official GitHub repository that contains all the source code, documentation, and instructions you will need to complete the assignment. Let's dive in!
 
-## Instructions Overview
-- [Prerequisites](#prerequisites) &larr; &larr; &larr; START HERE, DO NOT SKIP!
-  - [Environment file](#environment-file)
-  - [`uv` installation](#uv-installation)
-  - [Kaggle account creation](#kaggle-account)
-  - [NGROK account creation](#ngrok-account)
-  - [NGROK authentication token](#ngrok-authentication-token)
-  - [Kaggle notebook upload](#kaggle-notebook-upload)
-- [How to](#how-to) &larr; &larr; &larr; Your cookbook to complete the assignment
-  - [Edit the system prompt](#edit-the-system-prompt)
-  - [Add a new dataset](#add-a-dataset)
-  - [Add a new tool](#add-a-tool)
-  - [Test your tools without DaMi](#test-your-tools-without-dami)
-  - [Improve the description of a tool](#improve-the-description-of-a-tool)
-  - [Test your tools with DaMi](#test-your-tools-with-dami)
-  - [Use a different LLM](#use-a-different-llm)
-  - [Ask a question about the assignment](#ask-a-question-about-the-assignment)
+## Goal
 
-- [Understand what you have done](#understand-what-you-have-done) &larr; &larr; &larr; Read this to get the most out of the assignment
+The goal of this assignment is to equip you with hands-on knowledge and skills about **Agentic AI**, one of the hottest topics in the tech industry right now. Upon successful completion of the assignment, you will be able to do the following:
+1. Name the differences between an LLM 🧠, an AI agent 🤖, and a multi-agent AI system 👾
+2. Use human expertise to expand the capabilities of an existing AI agent 🔨
+3. Use the right tools to gain control 🛡️ and observability 🔭 over an AI system
+4. Set up a fully autonomous, multi-agent AI system to solve a complex task on your behalf 👤 🤝 👾
 
-## Prerequisites
-This section covers the prerequisites for running DaMi. All steps described below need to be completed _just once_ **per person**.
-Please make sure that you complete the prerequisites in the order they are presented.
-Once you have set up all the prerequisites, move to the [How to](#how-to) section.
+Exciting, isn't it?
 
-### Environment file
-An environment file (usually `.env`) is a plain text file that stores configuration settings as key-value pairs. It's used to define environment variables, such as API keys, database credentials, and other sensitive information, separating them from the application's source code.
+## Introduction
 
-**Your task:** Download the `.env` file from E-learning. Place it in the root folder of the project (i.e., where this README is located).
+Having recently graduated from the School of Informatics, your team leverages its data mining expertise to run a small startup. The startup specializes in transforming data into insights. Keeping up with the latest trends in the tech industry, your team hires ***DaMi*** (*DAta MIning*), an AI agent that can automate data mining tasks such as clustering and outlier detection. 
 
-### `uv` installation
-`uv` is a unified package and project manager for Python. It combines `pip`, `pyenv`, and `Poetry` into a single, highly performant tool written in Rust. This tool will be used to manage all Python dependencies and run DaMi's components throughout the assignment.
+**The Problem**: DaMi is keen, but at the same time new on the job: it sometimes picks the wrong algorithm, forgets what you said, and/or says it did things that it actually never did.
 
-**Your task:** Navigate to `uv`'s [official documentation](https://docs.astral.sh/uv/getting-started/installation/) and run the installation command for your operating system.
+**Your Job**: Improve DaMi, one step at a time: First understand how it operates and then open the black box to break, add, and finally improve how DaMi works, leveraging your human data mining knowledge!
 
-**Verification (optional):** After installation, you can verify that `uv` is properly installed by running `uv --version` in your terminal. You should see a version number printed.
+**The Structure**: The assignment is organized in small steps, each one of which builds on top of the previous ones, focusing on specific new skills and knowledges. The tasks start easy and get more ... interesting as you move on. But, don't worry! This guide has everything to help you learn through hands-on building! Are you ready?
 
-**Common issue:** You might see an error like:
-`npx not found. Please ensure Node.js and cli.py npm are properly installed and added to your system PATH.`
+**The Tech Stack**: We will use [Ollama](https://ollama.com/) to run LLMs of the [Qwen](https://huggingface.co/Qwen) family, leveraging GPU computing power from [Kaggle](https://www.kaggle.com/) located somewhere in the cloud. We will then use [ngrok](https://ngrok.com/) to make the LLM accessible from our local machines. On our machines, we will run a [Strands](https://strandsagents.com/) agent connected to a local [MCP Server](https://modelcontextprotocol.io/). We will communicate with the agent through a [Streamlit](https://streamlit.io/) UI. Optionally, we will keep a close eye on our agent's logs and internals through [langfuse](https://langfuse.com/), [Vctoria metrics](https://victoriametrics.com/), and [Grafana](https://grafana.com/); all running via [Docker](https://www.docker.com/).
 
-If that message occurs: install Node.js (which provides `npx`).
+![Tech Stack Overview](assets/images/DaMi_2026_2027.png)
 
-### Kaggle account
-Kaggle is an online community platform for data scientists and machine learning engineers that hosts data science competitions, provides datasets, and offers a web-based environment for building and sharing models. For this assignment, you will need a Kaggle account with phone verification completed to access GPU resources in notebooks.
+## Step 0: Pre-requisites
 
-**Your task:** If you already have a Kaggle account, make sure you can log in. If you do not have an account, create one for free [here](https://www.kaggle.com/account/login?phase=startRegisterTab). You will need a valid phone number to receive a verification SMS.
+This section describes how to install the needed tooling to run DaMi for the first time. **Both persons** in the team need to complete these steps **only once**. We distinguish between required and nice-to-have setups below. 
 
-**Important:** The phone verification step is mandatory for using GPU acceleration in Kaggle notebooks. Without completing phone verification, you may encounter errors when trying to enable GPU or authenticate with NGROK later in the process.
+### 0.1. Required Installations
 
-### NGROK account
+Please make sure that you set up all the tools specified in the following table following the instructions in the "How" column:
 
-NGROK is a tool that creates a secure tunnel between a public internet endpoint and a local server on your machine, allowing you to expose your local development environment to the internet.
-
-**Your task:** If you already have an NGROK account, make sure you can log in. If you do not have an account, create one for free. [here](https://dashboard.ngrok.com/signup)
-
-### NGROK authentication token
-
-An NGROK authentication token is a unique API key that authorizes the ngrok agent to connect to your account, enabling most of its features like tunneling.
-
-**Your task:** Make sure you have created an NGROK account in the previous step. Then, find your token through [NGROK's portal](https://dashboard.ngrok.com/get-started/your-authtoken). You will need this token for the next step.
-
-### Kaggle notebook upload
-
-A Kaggle Notebook is a cloud-based, interactive environment for data science and machine learning that runs in a web browser. It allows users to write and execute code in Python.
-
-**Your task:** Download the `llm_DaMi.ipynb` located in the `kaggle/` directory of the repository. Then, navigate to [Kaggle](https://www.kaggle.com/) &rarr; _+ Create_ &rarr; _<> Notebook_ &rarr; (a new notebook opens in your browser) &rarr; File &rarr; Import Notebook &rarr; (upload the `llm_DaMi.ipynb` file) &rarr; (optional) rename the notebook title to `llm_DaMi` for convenience. Then, click _Add-ons_ &rarr; _Secrets_. You must see a secret called `NGROK_AUTHTOKEN`. Edit the value by pasting the authentication token from the previous step. Make sure to save your changes.
-
-**Congratulations! You have successfully completed all the prerequisites!**
-
-## How to
-This section provides instructions on how to perform various tasks in order to help DaMi get access to high-quality, well-explained tools.
-
-### Edit the system prompt
-The system prompt is defined in the `src/agent/system_prompt.py`. Feel free to experiment with different variations of the system prompt.
-
-**Restarting the agent:** After making changes to the system prompt, you need to restart DaMi for the changes to take effect. This involves two steps:
-1. **Stop the local UI:** If DaMi's chat interface is running locally, press `Ctrl + C` in the terminal where you ran the Streamlit command to stop it.
-2. **Restart the local UI:** From the `src/` directory, run `uv run streamlit run ui/chat_interface.py` again to start DaMi with your updated system prompt.
-
-**Note:** You do NOT need to restart the Kaggle notebook when changing the system prompt - only restart the local Streamlit interface.
-
-### Add a dataset
-All datasets that DaMi can access are located in the `data/` directory as CSV files with two columns: `x` and `y`. Each dataset represents a simulated database table. To add a new dataset:
-
-1. **Create the CSV file:** Place a CSV file named `<your_table_name>.csv` in the `data/` directory with `x` and `y` columns:
-   ```csv
-   x,y
-   1.23,4.56
-   7.89,0.12
-   ```
-
-2. **Register the dataset:** Edit `src/environment/utils.py` and add an entry to the `DATABASE_TABLES` dictionary (this makes the dataset discoverable by DaMi through the `list_database_tables()` and `fetch_table_data()` tools):
-   ```python
-   "your_table_name": {
-       "description": "Brief description of what the dataset represents",
-       "columns": ["feature1 (x)", "feature2 (y)"],
-       "cluster_characteristics": "Description of clustering patterns in the data",
-   }
-   ```
-
-### Add a tool
-All tools that DaMi has access to are placed in the `src/tools/` directory of the project. They are further organized into sub-directories based on their domain. For example, the tools for clustering can be found inside the `src/tools/clustering/` directory. To add a new tool, see how existing tools are defined and create yours!
-
-_Hint:_ You might need to change more than one files to make your tool visible to DaMi!
-
-### Test your tools without DaMi
-
-From inside the `src/` directory run  `uv run mcp dev mcp_server.py` in a terminal. If this is the first time you run this command, you may be asked to install some packages. Type `y` and hit enter. You must see a web interface in your browser. Click _Connect_ &rarr; _Tools_ &rarr; _List Tools_. You must see all available tools. Select the one you want to test and fill in the parameters. Click _Run tool_ to call the tool (as if you were DaMi) and see the output. Debug your tool if the output does not match your expectations.
-
-**Note**: We have added a dummy `add` tool, in case you want a quick verification that your MCP server works. Once you set everything up, feel free to remove this tool (or even the whole `src/tools/math/` directory).
-
-### Improve the description of a tool
-All tools that DaMi has access to are placed in the `src/tools/` directory of the project. They are further organized into sub-directories based on their domain. For example, the tools for clustering can be found inside the `src/tools/clustering/` directory. What DaMi actually sees for every tool is the documentation (docstrings) of each tool. To improve the documentation of an existing tool, review the tool to understand what the source code does and, then, update the docstrings to clearly (and concisely) reflect the tool's functionality. Imagine you are DaMi. How would you explain the tool to yourself so that you know when to use (and when to not use) it, without looking at the source code?
-
-### Test your tools with DaMi
-
-Open the Kaggle notebook you created during the prerequisites stage. Make sure you have enabled GPU acceleration (_Settings_ &rarr; _Accelerator_ &rarr; _GPU T4 x 2_). Make sure you have added your NGROK authentication token as a secret to the notebook. From the top menu, click _Run All_ and wait until all 5 cells run successfully (this might take a couple of minutes). Go to the output of the 4th cell. You must see a URL in the format `https://someLettersAndNumbers.ngrok-free.app`. Copy this URL and paste it to update the `OLLAMA_HOST` variable in the `.env` file of your local project.
-
-**Important Notice:** If you want to understand what you have done, please see the [Understand what you have done](#understand-what-you-have-done) section. Unfortunately you will need to create a new URL (and upate the `.env`) every time you want to run DaMi. Finally, the Kaggle notebook will automatically close if the notebook receives no activity for 10-15 minutes. So, if you want to test for longer, please make sure you produce some activity (e.g., clicking at a cell, typing letters) every now and then. If your session terminates due to inactivity, do not panic. On the top menu, click the three dots &rarr; _Restart and run all cells_. You will get a new URL to use in your `.env` file.
-
-While your Kaggle session is running and your local `.env` file contains the latest URL (remember, latest output of cell 4) you are all set to run DaMi. From the `src/` directory, run `uv run streamlit run ui/chat_interface.py`. DaMi runs in [localhost:8501](http://localhost:8501/) and is ready to chat with you!
-
-**Important Notice:** When you are done with your testing, make sure you stop the Kaggle session to save quota. Kaggle provides for free 30 hours of GPU usage per week per person, which must be more than sufficient for the purposes of this assignment! To stop the UI, hit Ctrl + C in the terminal where you previously ran `uv run streamlit run ui/chat_interface.py`. This will terminate the DaMi chat in your browser.
+| Tool | Why | How |
+|---|---|---|
+| uv| Manage Python and packages | Follow the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) depending on your OS. Check with `uv --version`.|
+| [Node.js](https://nodejs.org) (LTS, **22.19 or newer**) | Test tools without the LLM | Download the latest LTS version from the official [Node.js installation guide](https://nodejs.org/en/download). Check with `node --version`. |
+| Kaggle account | Run LLM inference that powers DaMi | Register at [kaggle.com](https://www.kaggle.com/account/login?phase=startRegisterTab) and **verify your phone number** (*Settings → Phone verification*). Phone verification is required to run notebooks on GPU, which will be needed for this assignment.|
+| ngrok account | Make the LLM running on Kaggle accessible from your local machine | Register at [ngrok.com](https://dashboard.ngrok.com/signup). Then note your **authtoken** from [Your Authtoken](https://dashboard.ngrok.com/get-started/your-authtoken). This authtoken will be needed below.|
 
 
-### Use a different LLM
-_Or else, how to change DaMi's brain._
+### 0.2. Nice-to-have Installations
 
-If you haven't changed anything, DaMi runs [gpt-oss](https://ollama.com/library/gpt-oss) (20B parameters) on Kaggle. This must be sufficient for the needs of this assignment. However, if you want to experiment with other models, feel free to explore the [available options](https://ollama.com/search) on Ollama. Please note that [models with reasoning capabilities](https://ollama.com/search?c=thinking) are typically more suitable for agents. In any case, feel free to explore models with trial and error.
+Optionally set up docker following the instructions in the "How" column of the following table:
 
-Once you have selected a model, you need to change two things:
-- In the Kaggle notebook, change the `model` variable in cell 5. Re-run all cells and make sure you update the URL in the `.env`.
-- In your local code, change the `OLLAMA_MODEL` environment variable in `.env` to the match the model you have used. If your UI is running, you will need to restart it (Ctrl + C and then `uv run streamlit run ui/chat_interface.py`). 
+| Tool | Why | How |
+|---|---|---|
+| docker | Run the observability stack | Follow the [Docker Engine Installation Guide](https://docs.docker.com/engine/install/) based on your OS. Check with `docker compose version`|
 
+> Note: Docker can be installed on MacOS and Linux, but Windows machines are not supported. If you are a Windows user, we highly recomment setting up [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) and running docker from there.
 
-### Ask a question about the assignment
-This README should cover everything you need in order to successfully complete the assignment. However, if you find any blockers, please follow the steps below in order:
-1. Search again this documentation. Make sure you have completed all prerequisites. Make sure your question cannot be answered based on what is written here.
-2. Search the web or ask an LLM. If you are running into an error, search for the error message online. If you are running into some other issue, search for resources on how to do what you want to do. Make sure you understand the solution before copy-pasting.
-3. If you are still unable to find an answer, navigate to the e-learning website of the module. Find the forum dedicated to the assignment. Search for existing threads that are relevant to your issue. It might be the case that someone else had the same issue before you!
-4. If you are still unable to find an answer, create a new thread. Make sure you describe:
-    - Your issue clearly in a concise, informative title, so that other people can find it easily;
-    - What you want to do;
-    - What you have already tried before posting;
-    - Why what you have tried failed;
-    - How can others replicate your error;
-    - Any additional context that can be useful to others in order to help you.
+#### What happens if I do not setup docker?
+Although there is a clear path for Windows users to setup Docker inside WSL, we have decided to make this an **optional**, yet **highly-recommended** setup. In this assignment, we will use Docker to run AI observability tools, such as [langfuse](https://langfuse.com/), which are widely used in the tech industry as AI agents are becoming ubiquitous. Students that decide to not setup docker will simply skip this part of the assignment.
 
-**Important Notice**: Messages such as "I have problem with X." (without any other information), or questions that can be answered with the information provided in this README will be ignored.
+### 0.3. Finishing Touches
 
-## Understand what you have done
-This section is optional. However, we strongly encourage you to go through it, in order to understand what you have done and how all the pieces connect together. This section will help you wrap up the knowledge and skills you acquired through this assignment and help you get the most out of it.
+Good news: No more installations! Time for a last batch of one-off setup commands and then we are ready for action!
 
-- **What is DaMi actually?** _Answer_: DaMi is actually three distinct components working together: an MCP server with tools (DaMi's hands), an LLM (DaMi's brain), and a web application in Streamlit (DaMi's front door). The MCP server defines the tools and the way they are visible to DaMi. The LLM uses these tools and its reasoning capabilities to answer your prompts. The web application just creates a beautiful chat interface between you and the LLM. Learn more: [MCP](https://modelcontextprotocol.github.io/python-sdk/) | [Streamlit](https://streamlit.io/)
+#### 0.3.1. Get the code of this repository on your machine
+On your machine, run the following commands in a terminal:
+```bash
+git clone https://github.com/Bilpapster/DaMi.git dami && cd dami
+uv sync
+source .venv/bin/activate    # Windows: .venv\Scripts\activate
+cp .env.example .env
+dami --help                  # you should see the list of commands
+```
 
-- **What happens every time I run the Kaggle notebook?** _or else_ **Where is the LLM?** _Answer_: Every time you run a notebook on Kaggle, a new session is created somewhere in the cloud. In other words, a machine owned by Kaggle, which is located somewhere in the world, creates a new Python session and runs your code. The code in the provided Kaggle notebook sets up an Ollama server: a server that downloads and hosts LLMs on that machine. Once downloaded, these LLMs can be used for inference as we do in the 5th cell of the notebook. In our case, we download the [gpt-oss](https://ollama.com/library/gpt-oss) model. We then use NGROK to create a tunnel between the server that runs somewhere in the cloud and a URL address (the one you need to update in the `.env`). So, every time you hit this address with a prompt, this is redirected to the Kaggle machine's IP and the result is returned. All in all, the LLM lives and runs on a cloud machine provided by Kaggle. We access it through an NGROK tunnel. Learn more: [Ollama](https://docs.ollama.com/) | [NGROK](https://ngrok.com/docs/what-is-ngrok)
+> _Note_: These commands need to run **only the first time**. For every next time, only run `source .venv/bin/activate` (Linux/MacOS) or  `.venv\Scripts\activate` (Windows) and the `dami` command suite will be readily available.
 
-- **What happens every time I send a message to DaMi?** _Answer:_ When you click "Send" in your web browser, a new message of type `Human` is appended to the conversation history. We use the `langchain` python package to connect the LLM (running somewhere on Kaggle), the tools (running locally in your machine) and your prompts (generated through the UI that runs in your machine). We send the whole conversation history (i.e., the system prompt, plus all the messages so far, plus your last message) to the LLM through the NGROK tunnel. When the response is returned back to us from the LLM, we show it in the web application as a next message of type `AI`.  Learn more: [LangChain Agents](https://docs.langchain.com/oss/python/langchain/agents) | [LangChain MCP Adapters](https://github.com/langchain-ai/langchain-mcp-adapters)
+#### 0.3.2. Login to Kaggle from your terminal
+
+On your machine, run the following command in a terminal and follow the instructions:
+```bash
+kaggle auth login
+```
+
+> _Note_: This authentication needs to run **only the first time**.
+
+#### 0.3.3. Setting up the `.env` file
+
+Update the following lines in your `.env` file:
+```env
+KAGGLE_NOTEBOOK=<your-username>/llm-dami
+NGROK_AUTHTOKEN=<your ngrok authtoken>
+```
+
+> _Note 1_: Make sure to update `<your-username>` with your actual Kaggle username. If you are not sure what is your username, go to [kaggle.com](https://www.kaggle.com) -> (top right corner icon) -> "Your Profile". Your username is in the URL, e.g., for `https://www.kaggle.com/johndoe`, the username is `johndoe`.
+
+> _Note 2_: Make sure to update `<your ngrok authtoken>` with your actual ngrok authtoken obtained during step 0.1. You can always find it at [ngrok's "Your Authtoken" page](https://dashboard.ngrok.com/get-started/your-authtoken).
+
+> _Note 3_: This setup needs to happen **only the first time**.
+
+🎉🎉🎉 Congratulations! You have completed all pre-flight steps. You are now ready to start with the assignment steps! They are all under `assignment_steps/` in this repository. See you there 👋 !

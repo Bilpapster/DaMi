@@ -1,0 +1,21 @@
+# The DaMi Exam: the same questions after every case, so that you can measure progress.
+# `dami exam --tag baseline` runs all of them (each in a new conversation) and writes a
+# summary table to runs/. YOU decide if each answer is right: fill the "correct" column.
+# You may add questions, but do not change the existing ones (keep the comparison fair).
+
+- id: Q1
+  question: Which tables do we have, and how many rows does each one have?
+- id: Q2
+  question: Segment our customers. How many segments are there, and what are they?
+- id: Q3
+  question: Do our marketing campaigns fall into clear audience segments?
+- id: Q4
+  question: Group the products into families and show me a plot.
+- id: Q5
+  question: Some presses in the factory act strange. Find unusual sensor readings.
+- id: Q6
+  question: Is there anything suspicious in the card transactions?
+- id: Q7
+  question: Plot the sensors table.
+- id: Q8
+  question: Cluster the customers with 5 clusters, then tell me the average income of the richest cluster.

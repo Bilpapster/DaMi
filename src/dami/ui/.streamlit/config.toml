@@ -1,0 +1,51 @@
+# DaMi UI theme ("Night Desk"). Streamlit reads this file because it is next to app.py.
+# Light and dark themes are both defined: the app follows your OS, and you can switch in
+# the app menu (top right -> Settings).
+# Note: buttons show WHITE text on primaryColor. If you change primaryColor, keep it dark
+# enough for white text (contrast ratio >= 4.5:1).
+
+[theme]
+font = "sans-serif"
+headingFont = "monospace"
+codeFont = "monospace"
+headingFontWeights = [600, 600, 600, 500, 500, 500]
+headingFontSizes = ["2.25rem", "1.6rem", "1.25rem"]
+codeFontSize = "0.82rem"
+metricValueFontSize = "1.5rem"
+baseRadius = "0.75rem"
+buttonRadius = "full"
+showWidgetBorder = true
+linkUnderline = false
+paddingTop = "2.5rem"
+
+[theme.dark]
+primaryColor = "#12857C"
+backgroundColor = "#0B1220"
+secondaryBackgroundColor = "#141E31"
+textColor = "#E6EDF7"
+borderColor = "#24324A"
+linkColor = "#7DD3FC"
+codeBackgroundColor = "#0F1A2B"
+codeTextColor = "#C7F9EE"
+greenColor = "#34D399"
+yellowColor = "#F5B841"
+redColor = "#F87171"
+chartCategoricalColors = ["#2DD4BF", "#F5B841", "#7DD3FC", "#F87171", "#A78BFA", "#34D399"]
+
+[theme.dark.sidebar]
+backgroundColor = "#0E1626"
+secondaryBackgroundColor = "#17233A"
+
+[theme.light]
+primaryColor = "#0F766E"
+backgroundColor = "#F6F8FB"
+secondaryBackgroundColor = "#E8EEF6"
+textColor = "#0F1A2B"
+borderColor = "#CBD5E1"
+linkColor = "#0369A1"
+codeBackgroundColor = "#EEF2F7"
+codeTextColor = "#0F5132"
+yellowColor = "#9A6200"
+
+[theme.light.sidebar]
+backgroundColor = "#EEF3F9"

@@ -1,0 +1,44 @@
+/* DaMi UI: small, decorative CSS on top of the Streamlit theme (.streamlit/config.toml).
+   These selectors are not a public Streamlit API: if one stops working after an upgrade,
+   the app still works, it only looks plainer. */
+
+/* A comfortable reading width for the chat. */
+[data-testid="stMainBlockContainer"] { max-width: 60rem; }
+
+/* Message bubbles that fade in. */
+[data-testid="stChatMessage"] {
+  border: 1px solid rgba(125, 211, 252, .14);
+  border-radius: 1rem;
+  padding: .9rem 1.1rem;
+  animation: dami-in .28s ease-out both;
+}
+[data-testid="stChatMessage"]:has([aria-label="Chat message from assistant"]) {
+  border-left: 3px solid #2DD4BF;
+  box-shadow: 0 8px 24px -12px rgba(45, 212, 191, .25);
+}
+[data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) { margin-left: 12%; }
+@keyframes dami-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { [data-testid="stChatMessage"] { animation: none; } }
+
+/* A soft glow around the chat input when you type. */
+[data-testid="stChatInput"]:focus-within {
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, .25);
+  border-radius: 1.25rem;
+}
+
+/* Plots are white matplotlib images: show them as "exhibits" on paper. */
+[data-testid="stChatMessage"] [data-testid="stImage"] img {
+  border-radius: .75rem;
+  border: 1px solid rgba(148, 163, 184, .35);
+  background: #fff;
+}
+
+/* The wordmark at the top of the page. */
+.dami-wordmark {
+  font-family: "Source Code Pro", monospace;
+  font-size: 1.6rem;
+  letter-spacing: .12em;
+  font-weight: 600;
+  margin: 0 0 .1rem 0;
+}
+.dami-wordmark b { color: #F5B841; }
