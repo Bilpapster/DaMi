@@ -1,16 +1,16 @@
-# 🕵️ DaMi Step 1: Hello DaMi!
+# 🤗 DaMi Step 1: Hello DaMi!
 
 > DaMi's first day on the job!
 
 ## Prerequisites
 
-This step requires having set up uv, your Kaggle and ngrok accounts, as well as Node JS for the MCP server and your `.env` file with the appropriate variables. If you have not completed the required installations, please stop here and complete those first as described in the repository's README before continuing. The rest of this document assumes that the set up has been successfully completed. All commands should run from the root directory of the project.
+This step requires having set up uv, your Kaggle and ngrok accounts, as well as your `.env` file with the appropriate variables. If you have not completed the required installations, please stop here and complete those first as described in the repository's README before continuing. The rest of this document assumes that the set up has been successfully completed. All commands should run from the root directory of the project.
 
 ## 🎬 DO
 
 0. Make sure you have activated your virtual environment with `source .venv/bin/activate` (Linux, MacOS)  or `.venv\Scripts\activate` (Windows).
 
-1. Familiarize yourself with the `dami` command suite - you will use it a lot throughout this assignment. Run `dami --help` and observe the options. Expore the different sub-commands with `dami [sub-command] --help` (e.g., `dami kaggle --help`).
+1. Familiarize yourself with the `dami` command suite - you will use it a lot throughout this assignment. Run `dami --help` and observe the options. Explore the different sub-commands with `dami [sub-command] --help` (e.g., `dami kaggle --help`).
 
 2. Run `dami doctor` and read the output. You should see something like this:
 ```
@@ -27,20 +27,20 @@ This step requires having set up uv, your Kaggle and ngrok accounts, as well as 
 [... some logs about observability tools]
 ```
 
-3. It's time to run DaMi end-to-end for the first time. Run `dami kaggle start` and read the logs. The command uploads `src/kaggle/llm_DaMi.ipynb` to your Kaggle account and polls the log to discover the ngrok tunnel URL. Please allow up to 15 minutes for it to complete. In the end you should see something like this:
+3. It's time to run DaMi end-to-end for the first time. Run `dami kaggle start` and read the logs. The command uploads `src/dami/kaggle/llm_DaMi.ipynb` to your Kaggle account and polls the log to discover the ngrok tunnel URL. Kaggle can keep the notebook in a queue until a GPU is free, so please allow up to 2 hours for it to complete (the command waits that long). In the end you should see something like this:
 ```
 🔗 tunnel URL from the notebook log: https://<some-numbers-and-letters>.ngrok-free.app (written to .env as OLLAMA_HOST)
 ✅ DaMi's brain is ready at https://<some-numbers-and-letters>.ngrok-free.app. It stops by itself after 20 idle minutes.
 ```
 
-4. Once the ngrok tunnel is available, use the  `dami ask` command to ask DaMi what's his name. Read the response. Ask a couple of more questions to break the ice!
+4. Once the ngrok tunnel is available, use the  `dami ask` command to ask DaMi what its name is. Read the response. Ask a couple more questions to break the ice!
 
-5. Asking questions from the command line is fast, but nothing compares to a good UI! Use the `ui` sub-command of the `dami` suite to start the streamlit UI. Open the URL printed in the console in a browser. Ask DaMi questions through the UI. Read the answers and explore the UI options (e.g., expanding the "Under the Hood" section of each reply)
+5. Asking questions from the command line is fast, but nothing compares to a good UI! Use the `ui` sub-command of the `dami` suite to start the streamlit UI. Open the URL printed in the console in a browser. Ask DaMi questions through the UI. Read the answers and explore the UI options (e.g., expanding the "Under the hood" section of each reply)
 
 
 ## 🤔💭 THINK AND ANSWER
 
-1. Take a look at the Python Notebook that we uploaded to kaggle (`src/kaggle/llm_DaMi.ipynb/`). 
+1. Take a look at the Python Notebook that we uploaded to kaggle (`src/dami/kaggle/llm_DaMi.ipynb`). 
     1. What is the code in there doing? Which technologies of the assignment's tech stack does it cover?
     2. Where does this code run? Why can't we just run it locally?
 

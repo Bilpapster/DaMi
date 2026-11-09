@@ -1,10 +1,10 @@
-# 🕵️ DaMi Step 2: DaMi tools, not dummy tools!
+# ⛏️ DaMi Step 2: DaMi tools, not dummy tools!
 
 > Helping DaMi do the job the right way.
 
 ## Prerequisites
 
-Please make sure you have completed Step 1 before starting this one.
+Please make sure you have completed Step 1 before starting this one. This step also needs Node.js (see the README) to run the MCP Inspector.
 
 ## 🎬 DO
 
@@ -18,9 +18,9 @@ Please make sure you have completed Step 1 before starting this one.
 
 1. Try to find where these tools live in the code base. First read only the names and docstrings of these tools/functions. This is actually what DaMi sees, not the code. Then, read through their code. Try to identify flaws throughout. Test out your fixes by disconnecting from the server (top right button) and then connecting again to reload the tools.
 
-1. Add a new tool, `suggest_k`, that can help DaMi choose the number of clusters when applying `kmeans` (e.g., using the elbow method). Run `dami kaggle start` and ask DaMi something that requires clustering. Is DaMi using the tool all the times? Why/Why not? Iterate to help DaMi improve its tool calling.
+1. Add a new tool, `suggest_k`, that can help DaMi choose the number of clusters when applying `kmeans` (e.g., using the elbow method). Run `dami kaggle start` and ask DaMi something that requires clustering. Is DaMi using the tool every time? Why/Why not? Iterate to help DaMi improve its tool calling.
 
-1. Add at least two new tools for outlier detection. Write a proper name and documentation for these tools. Then write the source code and restart the `dami ui` for your chages to take effect. Verify that DaMi can now answer questions that explicitly or implicitly require outlier detection.
+1. Add at least two new tools for outlier detection. Write a proper name and documentation for these tools. Then write the source code and restart the `dami ui` for your changes to take effect. Verify that DaMi can now answer questions that explicitly or implicitly require outlier detection.
 
 ## 🤔💭 THINK AND ANSWER
 
@@ -28,7 +28,7 @@ Please make sure you have completed Step 1 before starting this one.
 
 1. What is the main flaw in the `kmeans` tool that produces such a poor clustering result? Is it at the documentation or at the implementation level? Should the fix be applied to any other tool as well? How did you verify that your fix works?
 
-1. After adding the `suggest_k` tool, was DaMi able to use it every time you expect it to do so? Why or why not? What could you do to enforce that DaMi always uses the `suggest_k` tool before using `k_means`?
+1. After adding the `suggest_k` tool, was DaMi able to use it every time you expect it to do so? Why or why not? What could you do to enforce that DaMi always uses the `suggest_k` tool before using `kmeans`?
 
 1. After adding the outlier detection tools, was DaMi able to use them effectively when solving the task at hand required to do so? Are there any edge cases (e.g., input table size) that you, as the tool designer, need to take into account? What did you do in this case?
 
