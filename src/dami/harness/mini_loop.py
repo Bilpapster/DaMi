@@ -1,4 +1,4 @@
-"""Harness task (Case 3): write your own tiny agent harness, without Strands.
+"""Harness task (Step 3): write your own tiny agent harness, without Strands.
 
 An agent is a loop:
 

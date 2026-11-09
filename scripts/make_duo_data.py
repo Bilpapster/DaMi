@@ -1,4 +1,4 @@
-"""Generate the Case 6 table: factory sensors with real anomalies AND data-quality problems.
+"""Generate the Step 5 table: factory sensors with real anomalies AND data-quality problems.
 
     python scripts/make_duo_data.py                         # the practice table in data/duo/
     python scripts/make_duo_data.py --seed 123 --out /tmp/x  # another table (instructors: a held-out one)

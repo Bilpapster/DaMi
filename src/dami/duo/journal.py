@@ -1,4 +1,4 @@
-"""The experiment journal of Case 6: DaMi's long-term memory across sessions.
+"""The experiment journal of Step 5: DaMi's long-term memory across sessions.
 
 Two files in workspace/duo/:
 - journal.jsonl: append-only facts, one line per event (trials, lessons, plans for the next steps).

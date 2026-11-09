@@ -40,7 +40,7 @@ def cluster_summary(df: pd.DataFrame, columns: list[str], labels: np.ndarray) ->
 def detect_outliers(data: np.ndarray, method: str = "isolation_forest", contamination: float = 0.01) -> np.ndarray:
     """Return a boolean array: True where a row is an outlier.
 
-    TODO (Case 2): implement at least two methods, for example IsolationForest
+    TODO (Step 2): implement at least two methods, for example IsolationForest
     and LocalOutlierFactor from scikit-learn. Think about scaling!
     """
-    raise NotImplementedError("detect_outliers is not implemented yet (Case 2).")
+    raise NotImplementedError("detect_outliers is not implemented yet (Step 2).")

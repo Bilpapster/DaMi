@@ -180,7 +180,7 @@ def cmd_obs(args) -> int:
 
 def main(argv=None) -> int:
     logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
-    p = argparse.ArgumentParser(prog="dami", description="DaMi, your data-mining detective.")
+    p = argparse.ArgumentParser(prog="dami", description="DaMi, the data mining agent.")
     sub = p.add_subparsers(dest="command", required=True)
 
     d = sub.add_parser("doctor", help="check the brain, the hands and the observability stack")
@@ -202,26 +202,26 @@ def main(argv=None) -> int:
     t.set_defaults(func=cmd_tools)
 
     e = sub.add_parser("exam", help="run the DaMi exam questions and save a summary")
-    e.add_argument("--tag", required=True, help="a name for this run, e.g. baseline, case1, case3")
+    e.add_argument("--tag", required=True, help="a name for this run, e.g. baseline, step2, step3")
     e.add_argument("--repeat", type=int, default=1, help="run each question N times")
     e.add_argument("--only", help="comma-separated question ids, e.g. Q2,Q5")
     e.set_defaults(func=cmd_exam)
 
-    m = sub.add_parser("mini", help="ask a question with your own mini harness (Case 3)")
+    m = sub.add_parser("mini", help="ask a question with your own mini harness (Step 3)")
     m.add_argument("question", nargs="+")
     m.set_defaults(func=cmd_mini)
 
     k = sub.add_parser("kaggle", help="start DaMi's brain on Kaggle")
     k.add_argument("action", choices=["start", "status", "stop", "partner"],
-                   help="partner: find your partner's tunnel URL (Case 6) and save it as OLLAMA_HOST_B")
+                   help="partner: find your partner's tunnel URL (Step 5) and save it as OLLAMA_HOST_B")
     k.add_argument("--url", help="partner: set OLLAMA_HOST_B to this URL instead of reading the partner's log")
     k.add_argument("--model", help="Ollama model (default: OLLAMA_MODEL from .env)")
     k.add_argument("--idle-minutes", type=int, default=20)
     k.add_argument("--max-hours", type=float, default=4)
-    k.add_argument("--wait-minutes", type=int, default=15)
+    k.add_argument("--wait-minutes", type=int, default=120, help="start: how long to wait for the brain (Kaggle can queue for a long time)")
     k.set_defaults(func=cmd_kaggle)
 
-    du = sub.add_parser("duo", help="Case 6: a driver agent and its sub-agents on two brains")
+    du = sub.add_parser("duo", help="Step 5: a driver agent and its sub-agents on two brains")
     du.add_argument("action", choices=["run", "journal", "score", "reset"])
     du.add_argument("--evaluations", type=int, default=6, help="run: evaluation budget of the session")
     du.add_argument("--spawns", type=int, default=4, help="run: how many sub-agents the driver may start")

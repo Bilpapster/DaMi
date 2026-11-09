@@ -13,7 +13,7 @@ from dami.agent import build_agent
 from dami.config import get_settings
 from dami.ui import parts
 
-st.set_page_config(page_title="DaMi Detective Agency", page_icon="🕵️", layout="wide")
+st.set_page_config(page_title="DaMi - The data mining agent", page_icon=str(parts.LOGO), layout="wide")
 st.html(Path(__file__).with_name("style.css"))
 st.logo(parts.LOGO, size="large")
 settings = get_settings()
@@ -49,10 +49,10 @@ def image_paths(run: dict) -> list[str]:
 
 def show_images(paths: list[str]) -> None:
     for n, path in enumerate(paths):
-        st.image(path, width=620, caption=f"Exhibit {chr(65 + n)} · {Path(path).name}")
+        st.image(path, width=620, caption=f"Plot {n + 1} · {Path(path).name}")
 
 
-# ---------------------------------------------------------------- sidebar: the case file
+# ---------------------------------------------------------------- sidebar: status and controls
 with st.sidebar:
     st.badge(settings.model_id, icon=":material/psychology:", color="primary")
     brain = parts.brain_status(settings.ollama_host, settings.model_id)
@@ -81,7 +81,7 @@ with st.sidebar:
             st.caption(f"Context of the last call: {used:,} tokens (limit unknown)")
 
     left, right = st.columns(2)
-    if left.button("New case", icon=":material/cleaning_services:", width="stretch",
+    if left.button("New chat", icon=":material/cleaning_services:", width="stretch",
                    help="Forget the conversation."):
         if "agent" in state:
             state.agent.messages.clear()
@@ -91,6 +91,9 @@ with st.sidebar:
                     help="Restart DaMi: needed after you change the tools, the prompt or .env."):
         reload_dami()
         st.rerun()
+
+    st.toggle(":material/menu_book: Assignment steps", key="show_steps",
+              help="Read the assignment steps (assignment_steps/) in a panel next to the chat.")
 
     st.divider()
     obs = parts.observability_status(settings.victoriametrics_url, settings.langfuse_host)
@@ -102,11 +105,26 @@ with st.sidebar:
         st.caption("Start them with `dami obs up` (add `--traces` for Langfuse).")
 
 # ---------------------------------------------------------------- main page
-st.html('<div class="dami-wordmark">DAMI<b>·</b>DETECTIVE AGENCY</div>')
-st.caption("Ask about the database: customers, products, marketing, sensors, transactions.")
+st.html('<div class="dami-wordmark">DAMI<b>·</b>THE DATA MINING AGENT</div>')
+st.caption("Ask DaMi about your data: customers, products, marketing, sensors, transactions.")
 
 if state.pop("running", False):
-    st.warning("The last run was interrupted. Start a **New case** if DaMi seems confused.", icon=":material/warning:")
+    st.warning("The last run was interrupted. Start a **New chat** if DaMi seems confused.", icon=":material/warning:")
+
+# The assignment steps panel (right), next to the chat (left).
+if state.get("show_steps"):
+    st.html("<style>[data-testid='stMainBlockContainer'] { max-width: 110rem; }</style>")
+    chat, panel = st.columns([3, 2], gap="large")
+    with panel:
+        steps = parts.assignment_steps()
+        if steps:
+            chosen = st.selectbox("Assignment step", list(steps), label_visibility="collapsed")
+            with st.container(height=720, border=True):
+                st.markdown(steps[chosen])
+        else:
+            st.info(f"No steps found in `{parts.STEPS_DIR}`.")
+else:
+    chat = st.container()
 
 try:
     start_dami()
@@ -116,42 +134,44 @@ except Exception as e:  # noqa: BLE001 - explain it in the page
 
 agent, live = state.agent, state.live
 
-if not state.history:
-    examples = parts.example_prompts()
-    case = st.segmented_control("Examples", list(examples), default="Case 0", label_visibility="collapsed")
-    st.pills("Try one", examples[case or "Case 0"], key="chip", label_visibility="collapsed",
-             on_change=lambda: state.update(queued=state.chip, chip=None))
+prompt = st.chat_input("Ask DaMi about your data…", submit_mode="disable") or state.pop("queued", None)
 
-for item in state.history:
-    with st.chat_message(item["role"], avatar=parts.USER_AVATAR if item["role"] == "user" else parts.DAMI_AVATAR):
-        st.markdown(item["text"])
-        if item.get("error"):
-            parts.show_error(item["error"])
-        show_images(item.get("images", []))
-        if item.get("snap"):
-            parts.under_the_hood(item["snap"], settings)
+with chat:
+    if not state.history and not prompt:
+        examples = parts.example_prompts()
+        step = st.segmented_control("Examples", list(examples), default="Step 1", label_visibility="collapsed")
+        st.pills("Try one", examples[step or "Step 1"], key="chip", label_visibility="collapsed",
+                 on_change=lambda: state.update(queued=state.chip, chip=None))
 
-prompt = st.chat_input("What should DaMi investigate?", submit_mode="disable") or state.pop("queued", None)
-if prompt:
-    state.history.append({"role": "user", "text": prompt})
-    with st.chat_message("user", avatar=parts.USER_AVATAR):
-        st.markdown(prompt)
+    for item in state.history:
+        with st.chat_message(item["role"], avatar=parts.USER_AVATAR if item["role"] == "user" else parts.DAMI_AVATAR):
+            st.markdown(item["text"])
+            if item.get("error"):
+                parts.show_error(item["error"])
+            show_images(item.get("images", []))
+            if item.get("snap"):
+                parts.under_the_hood(item["snap"], settings)
 
-    with st.chat_message("assistant", avatar=parts.DAMI_AVATAR):
-        state.running = True
-        before = dict(agent.event_loop_metrics.accumulated_usage)
-        answer, error = parts.run_streaming(agent, live, prompt)
-        state.running = False
-        run = agent.dami_recorder.last_run or {}
-        snap = parts.snapshot(agent, live, run, before) if not error else None
-        images = image_paths(run) if not error else []
+    if prompt:
+        state.history.append({"role": "user", "text": prompt})
+        with st.chat_message("user", avatar=parts.USER_AVATAR):
+            st.markdown(prompt)
 
-        st.markdown(answer)
-        if error:
-            parts.show_error(error)
-        show_images(images)
-        if snap:
-            parts.under_the_hood(snap, settings)
+        with st.chat_message("assistant", avatar=parts.DAMI_AVATAR):
+            state.running = True
+            before = dict(agent.event_loop_metrics.accumulated_usage)
+            answer, error = parts.run_streaming(agent, live, prompt)
+            state.running = False
+            run = agent.dami_recorder.last_run or {}
+            snap = parts.snapshot(agent, live, run, before) if not error else None
+            images = image_paths(run) if not error else []
 
-    state.history.append({"role": "assistant", "text": answer, "error": error, "images": images, "snap": snap})
-    st.rerun()
+            st.markdown(answer)
+            if error:
+                parts.show_error(error)
+            show_images(images)
+            if snap:
+                parts.under_the_hood(snap, settings)
+
+        state.history.append({"role": "assistant", "text": answer, "error": error, "images": images, "snap": snap})
+        st.rerun()

@@ -1,4 +1,4 @@
-# 🕵️ DaMi: Demystifying a dAta mIning AI Agent
+# 🤗 DaMi: Demystifying a dAta mIning AI Agent
 
 👋 Hi and welcome to the 2026-2027 assignment of the _Data Science Principles_ Course at the [School of Informatics, AUTh](https://csd.auth.gr/en/home/)! 
 
@@ -22,9 +22,9 @@ Having recently graduated from the School of Informatics, your team leverages it
 
 **Your Job**: Improve DaMi, one step at a time: First understand how it operates and then open the black box to break, add, and finally improve how DaMi works, leveraging your human data mining knowledge!
 
-**The Structure**: The assignment is organized in small steps, each one of which builds on top of the previous ones, focusing on specific new skills and knowledges. The tasks start easy and get more ... interesting as you move on. But, don't worry! This guide has everything to help you learn through hands-on building! Are you ready?
+**The Structure**: The assignment is organized in small steps, each one of which builds on top of the previous ones, focusing on specific new skills and knowledge. The tasks start easy and get more ... interesting as you move on. But, don't worry! This guide has everything to help you learn through hands-on building! Are you ready?
 
-**The Tech Stack**: We will use [Ollama](https://ollama.com/) to run LLMs of the [Qwen](https://huggingface.co/Qwen) family, leveraging GPU computing power from [Kaggle](https://www.kaggle.com/) located somewhere in the cloud. We will then use [ngrok](https://ngrok.com/) to make the LLM accessible from our local machines. On our machines, we will run a [Strands](https://strandsagents.com/) agent connected to a local [MCP Server](https://modelcontextprotocol.io/). We will communicate with the agent through a [Streamlit](https://streamlit.io/) UI. Optionally, we will keep a close eye on our agent's logs and internals through [langfuse](https://langfuse.com/), [Vctoria metrics](https://victoriametrics.com/), and [Grafana](https://grafana.com/); all running via [Docker](https://www.docker.com/).
+**The Tech Stack**: We will use [Ollama](https://ollama.com/) to run LLMs of the [Qwen](https://huggingface.co/Qwen) family, leveraging GPU computing power from [Kaggle](https://www.kaggle.com/) located somewhere in the cloud. We will then use [ngrok](https://ngrok.com/) to make the LLM accessible from our local machines. On our machines, we will run a [Strands](https://strandsagents.com/) agent connected to a local [MCP Server](https://modelcontextprotocol.io/). We will communicate with the agent through a [Streamlit](https://streamlit.io/) UI. Optionally, we will keep a close eye on our agent's logs and internals through [langfuse](https://langfuse.com/), [VictoriaMetrics](https://victoriametrics.com/), and [Grafana](https://grafana.com/); all running via [Docker](https://www.docker.com/).
 
 ![Tech Stack Overview](assets/images/DaMi_2026_2027.png)
 
@@ -52,7 +52,7 @@ Optionally set up docker following the instructions in the "How" column of the f
 |---|---|---|
 | docker | Run the observability stack | Follow the [Docker Engine Installation Guide](https://docs.docker.com/engine/install/) based on your OS. Check with `docker compose version`|
 
-> Note: Docker can be installed on MacOS and Linux, but Windows machines are not supported. If you are a Windows user, we highly recomment setting up [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) and running docker from there.
+> Note: Docker can be installed on MacOS and Linux, but Windows machines are not supported. If you are a Windows user, we highly recommend setting up [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) and running docker from there.
 
 #### What happens if I do not setup docker?
 Although there is a clear path for Windows users to setup Docker inside WSL, we have decided to make this an **optional**, yet **highly-recommended** setup. In this assignment, we will use Docker to run AI observability tools, such as [langfuse](https://langfuse.com/), which are widely used in the tech industry as AI agents are becoming ubiquitous. Students that decide to not setup docker will simply skip this part of the assignment.

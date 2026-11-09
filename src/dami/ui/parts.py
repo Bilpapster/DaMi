@@ -6,8 +6,8 @@ The page flow is in app.py. You can change this file to show more (or other) thi
 import asyncio
 import copy
 import json
+import re
 import time
-
 from pathlib import Path
 
 import requests
@@ -26,19 +26,43 @@ from dami.config import REPO_ROOT, Settings
 from dami.model import NGROK_HEADERS
 
 LOGO = Path(__file__).parent / "logo" / "dami.png"
-DAMI_AVATAR = ":material/policy:"
+DAMI_AVATAR = "⛏️"
 USER_AVATAR = "user"
+STEPS_DIR = REPO_ROOT / "assignment_steps"
 
 
 def example_prompts() -> dict[str, list[str]]:
     exam = yaml.safe_load((REPO_ROOT / "exam" / "questions.yaml").read_text(encoding="utf-8"))
     return {
-        "Case 0": ["Which tables do we have?", "Plot the sensors table."],
-        "Case 1": ["How many customer segments are there?", "Group the products into families and plot them."],
-        "Case 2": ["Some presses act strange. Find unusual sensor readings.",
+        "Step 1": ["What is your name?", "What can you do for me?", "Which tables do we have?"],
+        "Step 2": ["How many customer segments are there? Plot them.",
+                   "Group the products into families and plot them.",
+                   "Some presses act strange. Find unusual sensor readings.",
                    "Is there anything suspicious in the card transactions?"],
+        "Step 3": ["Describe every table we have.", "Cluster the marketing campaigns, then plot those clusters."],
+        "Step 4": ["Find outliers in the sensors table with micro-clusters.",
+                   "Which clustering method fits the marketing table best, and why?",
+                   "Write a short data mining report on the products table."],
         "Exam": [q["question"] for q in exam],
     }
+
+
+def assignment_steps() -> dict[str, str]:
+    """The assignment steps, read from assignment_steps/ (the single source of truth): {title: markdown}.
+
+    The files are read on every page run, so a change to a step shows at once.
+    """
+    def order(path: Path) -> list:
+        return [int(part) if part.isdigit() else part for part in re.split(r"(\d+)", path.stem)]
+
+    steps = {}
+    for path in sorted(STEPS_DIR.glob("*.md"), key=order):
+        text = path.read_text(encoding="utf-8")
+        heading = text.lstrip().splitlines()[0] if text.strip() else ""
+        title = re.search(r"Step\s*\d+.*", heading)
+        other = re.sub(r"^#+\s*(\W+\s*)?(DaMi\s+)?", "", heading).strip()  # "# ⛏️ DaMi Exam: ..." -> "Exam: ..."
+        steps[title.group(0).strip() if title else other or path.stem] = text
+    return steps
 
 
 # ----------------------------------------------------------------------------- live progress
@@ -106,7 +130,7 @@ class LiveProgress(HookProvider):
 
 def run_streaming(agent, live: LiveProgress, prompt: str) -> tuple[str, Exception | None]:
     """Run one question with live progress, a running clock and the answer streamed as it is written."""
-    with st.status("DaMi is investigating…", expanded=True) as box:
+    with st.status("DaMi is working…", expanded=True) as box:
         live.reset(box)
         clock, out = st.empty(), st.empty()
         text = {"now": ""}
@@ -136,11 +160,11 @@ def run_streaming(agent, live: LiveProgress, prompt: str) -> tuple[str, Exceptio
         try:
             result, seconds = asyncio.run(run())
         except Exception as e:  # noqa: BLE001 - shown to the student with a hint
-            box.update(label="DaMi could not finish this case", state="error", expanded=True)
+            box.update(label="DaMi could not finish this request", state="error", expanded=True)
             return "", e
         out.empty()
         steps = sum(1 for s in live.steps if s["kind"] == "model")
-        box.update(label=f"Case closed · {seconds:.0f} s · {steps} model calls", state="complete", expanded=False)
+        box.update(label=f"Done · {seconds:.0f} s · {steps} model calls", state="complete", expanded=False)
     return str(result).strip(), None
 
 

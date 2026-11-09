@@ -1,4 +1,4 @@
-"""The deterministic evaluator of Case 6 (no LLM): clean -> fixed outlier detector -> F1 on hidden labels.
+"""The deterministic evaluator of Step 5 (no LLM): clean -> fixed outlier detector -> F1 on hidden labels.
 
 The detector never changes (IsolationForest on the standardized sensor columns), so the only way to a
 better score is better data. Scores are reported relative to "no cleaning", like s = r - r0 in LLM-AutoDP.

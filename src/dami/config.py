@@ -64,7 +64,7 @@ class Settings:
     # --- Kaggle ---
     kaggle_notebook: str | None = field(default_factory=lambda: os.getenv("KAGGLE_NOTEBOOK"))
 
-    # --- Case 6: the second brain (your partner's Kaggle notebook) ---
+    # --- Step 5: the second brain (your partner's Kaggle notebook) ---
     ollama_host_b: str | None = field(default_factory=lambda: os.getenv("OLLAMA_HOST_B"))
     model_id_b: str | None = field(default_factory=lambda: os.getenv("OLLAMA_MODEL_B"))
     partner_notebook: str | None = field(default_factory=lambda: os.getenv("PARTNER_NOTEBOOK"))

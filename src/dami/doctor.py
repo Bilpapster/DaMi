@@ -107,7 +107,7 @@ def run(skip_chat: bool = False) -> int:
     print(f"  {OK if env.exists() else BAD} .env file {'found' if env.exists() else 'missing: copy .env.example to .env'}")
     brain_ok = check_brain(s)
     if s.ollama_host_b:
-        print("\n🧠 Brain B (Case 6: your partner's notebook)")
+        print("\n🧠 Brain B (Step 5: your partner's notebook)")
         from dami.kaggle.runner import brain_ready
 
         ok_b, why_b = brain_ready(s.ollama_host_b, s.model_id_b or s.model_id)

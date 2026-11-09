@@ -287,7 +287,7 @@ def start(model: str | None, idle_minutes: int, max_hours: float, wait_minutes: 
 
 
 def partner(url: str | None = None) -> int:
-    """Case 6: find the tunnel URL of your partner's running notebook and save it as OLLAMA_HOST_B.
+    """Step 5: find the tunnel URL of your partner's running notebook and save it as OLLAMA_HOST_B.
 
     Your partner shares their notebook with you once on kaggle.com (Share -> add you as a collaborator),
     and you put its id in .env as PARTNER_NOTEBOOK. Then this command reads the URL from the live log.
