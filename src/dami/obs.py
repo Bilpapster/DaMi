@@ -67,8 +67,7 @@ def init(show_logins: bool = True) -> int:
         if old:
             print("⚠️  Data of an earlier stack exists (Docker volumes: " + ", ".join(old) + ").\n"
                   "   Grafana and Langfuse keep the passwords of their FIRST start, so the new ones will not work.\n"
-                  "   To start fresh (this deletes the stored metrics and traces):\n"
-                  "     dami obs down && docker volume rm " + " ".join(old))
+                  "   To start fresh (this deletes the stored metrics and traces): dami obs delete")
     if show_logins:
         print_logins()
     return 0
@@ -105,6 +104,15 @@ def up(traces: bool) -> int:
 
 def down() -> int:
     return _compose("--profile", "metrics", "--profile", "traces", "down")
+
+
+def delete() -> int:
+    """Stop the stack and delete its Docker volumes: all stored metrics, traces and the old passwords."""
+    answer = input("This deletes all stored metrics and traces of DaMi. Continue? [y/N] ")
+    if answer.strip().lower() != "y":
+        print("Nothing deleted.")
+        return 1
+    return _compose("--profile", "metrics", "--profile", "traces", "down", "--volumes")
 
 
 def status() -> int:

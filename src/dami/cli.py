@@ -175,7 +175,7 @@ def cmd_duo(args) -> int:
 def cmd_obs(args) -> int:
     from dami import obs
 
-    return {"init": obs.init, "down": obs.down, "status": obs.status}.get(args.action, lambda: obs.up(args.traces))()
+    return {"init": obs.init, "down": obs.down, "delete": obs.delete, "status": obs.status}.get(args.action, lambda: obs.up(args.traces))()
 
 
 def main(argv=None) -> int:
@@ -230,7 +230,8 @@ def main(argv=None) -> int:
     du.set_defaults(func=cmd_duo)
 
     o = sub.add_parser("obs", help="local observability stack: Grafana + VictoriaMetrics (+ Langfuse)")
-    o.add_argument("action", choices=["init", "up", "down", "status"])
+    o.add_argument("action", choices=["init", "up", "down", "delete", "status"],
+                   help="delete: stop the stack and delete its volumes (all metrics, traces and stored passwords)")
     o.add_argument("--traces", action="store_true", help="also start Langfuse (needs ~4 GB RAM)")
     o.set_defaults(func=cmd_obs)
 
