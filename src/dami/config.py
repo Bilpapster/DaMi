@@ -45,7 +45,7 @@ class Settings:
     model_id: str = field(default_factory=lambda: os.getenv("OLLAMA_MODEL", "qwen3.5:9b"))
     temperature: float = field(default_factory=lambda: float(os.getenv("DAMI_TEMPERATURE", "0.7")))
     think: bool = field(default_factory=lambda: _bool("DAMI_THINK", True))
-    context_length: int | None = field(default_factory=lambda: _int("DAMI_NUM_CTX"))
+    context_length: int | None = field(default_factory=lambda: _int("DAMI_CONTEXT_LENGTH"))
     keep_alive: str = field(default_factory=lambda: os.getenv("DAMI_KEEP_ALIVE", "30m"))
     request_timeout_s: float = field(default_factory=lambda: float(os.getenv("DAMI_TIMEOUT_S", "300")))
 
