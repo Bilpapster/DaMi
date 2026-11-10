@@ -1,4 +1,4 @@
-# Agent Skills (Step 4)
+# Agent Skills (Step 5)
 
 An *Agent Skill* is a folder with a `SKILL.md` file: a short name and description at the top
 (frontmatter), then instructions, and optionally scripts or reference files. The agent sees only
