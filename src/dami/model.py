@@ -45,7 +45,7 @@ def make_model(settings: Settings | None = None, **overrides) -> OllamaModel:
 
 
 def make_model_b(settings: Settings | None = None, **overrides) -> OllamaModel:
-    """The second brain (Step 5): OLLAMA_HOST_B, your partner's Kaggle notebook.
+    """The second brain (Step 6): OLLAMA_HOST_B, your partner's Kaggle notebook.
 
     Without OLLAMA_HOST_B, it falls back to your own brain (OLLAMA_HOST): one brain plays both roles.
     """

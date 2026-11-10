@@ -1,4 +1,4 @@
-"""Step 5: the driver (brain A) spawns sub-agents (brain B) that inspect the data and propose cleaning plans.
+"""Step 6: the driver (brain A) spawns sub-agents (brain B) that inspect the data and propose cleaning plans.
 
     dami duo run           # one session of the driver
     dami duo journal       # print the journal (the memory that survives sessions)
