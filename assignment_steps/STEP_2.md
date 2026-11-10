@@ -10,7 +10,7 @@ Please make sure you have completed Step 1 before starting this one. This step a
 
 0. Activate your virtual environment.
 
-1. Inspect the MCP tools that DaMi can use. Run `ALLOWED_ORIGINS=http://localhost:6275,http://127.0.0.1:6275  uv run --with mcp==2.3.0 mcp dev src/dami/mcp_server/server.py`. This opens an MCP Inspector window in your browser that allows you to run tools without an LLM. Connect to the "uv" server and click on "Tools" from the top menu.
+1. Inspect the MCP tools that DaMi can use. Run `ALLOWED_ORIGINS=http://localhost:6274,http://127.0.0.1:6274 uv run --with mcp==2.3.0 mcp dev src/dami/mcp_server/server.py`. This opens an MCP Inspector window in your browser that allows you to run tools without an LLM. Connect to the "uv" server and click on "Tools" from the top menu.
 
 1. Start with the `add` tool. Try to invoke it with two numbers of your preference and observe the result. Then browse through the rest of the tools. Take a closer look at their name, description, and arguments. Try to identify things that do not look quite right. This will be very helpful for answering some of the questions at the end of this step!
 
