@@ -5,15 +5,16 @@ A plan is an ordered list of steps, for example:
     [{"op": "drop_duplicates"},
      {"op": "linear_fix", "column": "temperature_c", "machine": "M3", "multiply": 0.5556, "add": -17.78}]
 
-Order matters (as in the LLM-AutoDP paper): for example, mark stuck values as missing
+Order matters: for example, mark stuck values as missing
 BEFORE you fill missing values. Every operation is plain pandas: no LLM writes code here.
 """
 
+import re
 from typing import Literal
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 OpName = Literal["drop_duplicates", "linear_fix", "fill_missing", "mark_stuck_as_missing",
                  "swap_columns_where", "clip", "drop_rows_where"]
@@ -37,6 +38,46 @@ class Step(BaseModel):
 class CleaningPlan(BaseModel):
     steps: list[Step] = Field(default_factory=list, description="Ordered steps; an empty list means 'no cleaning'.")
     rationale: str = Field("", description="Why these steps, in 1-3 sentences.")
+
+
+STEP_LINE = re.compile(r"^\W*(?:\d+[.)]\s*)?`?([a-z_]+)\((.*)\)`?\W*$")
+
+
+def parse_plan(text: str) -> CleaningPlan:
+    """Read a plan that a sub-agent wrote as text, one step per line:
+
+        PLAN:
+        1. drop_duplicates()
+        2. fill_missing(column=power_kw, method=median)
+        RATIONALE: why these steps.
+
+    Raises ValueError with a message that the sub-agent can act on.
+    """
+    found = re.search(r"PLAN\W*:(.*?)(?:RATIONALE\W*:(.*))?$", text, re.DOTALL)
+    if not found:
+        raise ValueError("there is no 'PLAN:' line in your answer.")
+    steps = []
+    for line in found[1].splitlines():
+        m = STEP_LINE.match(line.strip())
+        if not m:
+            continue  # blank lines and markdown around the steps
+        args = {}
+        for part in filter(None, (p.strip() for p in m[2].split(","))):
+            key, eq, value = part.partition("=")
+            if not eq:
+                raise ValueError(f"'{line.strip()}': write each parameter as name=value.")
+            args[key.strip()] = value.strip().strip("'\"")
+        # Step ignores unknown fields, so check them here: a misspelled parameter must not vanish silently.
+        unknown = set(args) - set(Step.model_fields)
+        if unknown:
+            raise ValueError(f"'{line.strip()}': unknown parameter(s) {sorted(unknown)}.")
+        try:
+            steps.append(Step(op=m[1], **args))
+        except ValidationError as e:
+            raise ValueError(f"'{line.strip()}': {e.errors()[0]['msg']}.") from e
+    if not steps:
+        raise ValueError("no steps found under 'PLAN:'. Write one step per line, like '1. drop_duplicates()'.")
+    return CleaningPlan(steps=steps, rationale=(found[2] or "").strip(" *\n"))
 
 
 def _rows(df: pd.DataFrame, step: Step) -> pd.Series:

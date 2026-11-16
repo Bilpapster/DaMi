@@ -87,3 +87,46 @@ dami obs up --traces
 Log in with the credentials that `dami obs up` prints now. Langfuse needs about 1-2 minutes for its first start.
 
 If Grafana says the login is "temporarily blocked", you tried too many wrong passwords: wait 5 minutes.
+
+## `runs/` or `workspace/` take too much disk space
+
+### Symptoms
+
+- Your disk is getting full, and `runs/` or `workspace/` are large.
+- You find each plot twice: in `workspace/plots/` and in `runs/plots/`.
+
+### Cause
+
+DaMi keeps everything it does, so that you can look at it later:
+
+- `workspace/plots/`: the plots that DaMi's tools create. This is the path DaMi gives you in its answers.
+  A plot with the same name (for example `sensors_data.png`) is overwritten by the next one.
+- `workspace/results/`: the results of the clustering tools (one CSV file per `result_id`).
+- `workspace/duo/`: the journal of Step 5 (the agents' memory across sessions).
+- `runs/`: one file per question you ask DaMi (`<run_id>.jsonl`), the exam files (`exam-<tag>-<date-time>.csv` and `.md`),
+  and in `runs/plots/` a copy of every plot of every run.
+
+The plots are copied on purpose: because the tools reuse file names, the copy in `runs/plots/` is the only way
+to see the plot of an older run. The exam report, the "Exam results" panel and the chat history in the UI show these copies.
+
+Both folders are ignored by git, so they never end up in your repository.
+
+### Solution
+
+Delete what you no longer need. Nothing breaks: DaMi creates the folders again when it needs them.
+
+- `runs/plots/` and old `runs/*.jsonl` files: safe to delete. Old exam reports and older runs in the UI
+  then show their answers without plots.
+- `workspace/plots/` and `workspace/results/`: safe to delete. DaMi creates new ones the next time it plots or clusters.
+
+Keep these, unless you are sure you don't need them any more:
+
+- `runs/exam-*.csv`: they hold your grades (the `correct` column) and the numbers for your final presentation.
+- `workspace/duo/`: the journal of Step 5. To start without memory, use `dami duo reset` instead.
+
+For example, to delete the plot copies and the run files older than 14 days (Linux, macOS):
+
+```bash
+rm -rf runs/plots
+find runs -name "*.jsonl" -mtime +14 -delete
+```

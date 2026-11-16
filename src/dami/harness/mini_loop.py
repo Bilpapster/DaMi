@@ -1,4 +1,4 @@
-"""Harness task (Step 4): write your own tiny agent harness, without Strands.
+"""Harness task (Step 3): write your own tiny agent harness, without Strands.
 
 An agent is a loop:
 
@@ -80,7 +80,7 @@ def run(question: str, max_steps: int = 8, verbose: bool = True) -> str:
             print(f"--- step {step}: prompt tokens={response.prompt_eval_count}, output tokens={response.eval_count}")
 
         # TODO 1: add the model's message to `messages` (the history).
-
+        
         # TODO 2: if the model did NOT ask for tools (message.tool_calls is empty), return message.content.
 
         # TODO 3: for each call in message.tool_calls:

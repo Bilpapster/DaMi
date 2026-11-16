@@ -3,6 +3,7 @@
 import argparse
 import json
 import logging
+import os
 import subprocess
 import sys
 from datetime import datetime
@@ -78,6 +79,13 @@ def cmd_ui(args) -> int:
     cmd = [sys.executable, "-m", "streamlit", "run", str(app), "--server.address", "127.0.0.1",
            "--server.port", str(args.port), "--browser.gatherUsageStats", "false"]
     return subprocess.call(cmd)
+
+
+def cmd_inspect(args) -> int:
+    server = PACKAGE_DIR / "mcp_server" / "server.py"
+    # The Inspector refuses requests from its own web page unless that origin is allowed.
+    env = {**os.environ, "ALLOWED_ORIGINS": "http://localhost:6274,http://127.0.0.1:6274"}
+    return subprocess.call(["uv", "run", "--with", "mcp==2.3.0", "mcp", "dev", str(server)], env=env)
 
 
 def cmd_tools(args) -> int:
@@ -201,19 +209,22 @@ def main(argv=None) -> int:
     t.add_argument("-v", "--verbose", action="store_true", help="print the full JSON schemas")
     t.set_defaults(func=cmd_tools)
 
+    sub.add_parser("inspect", help="open the MCP Inspector to run DaMi's tools without an LLM (Step 2)").set_defaults(
+        func=cmd_inspect)
+
     e = sub.add_parser("exam", help="run the DaMi exam questions and save a summary")
-    e.add_argument("--tag", required=True, help="a name for this run, e.g. baseline, step3, step4")
+    e.add_argument("--tag", required=True, help="a name for this run, e.g. baseline, step2, step3")
     e.add_argument("--repeat", type=int, default=1, help="run each question N times")
     e.add_argument("--only", help="comma-separated question ids, e.g. Q2,Q5")
     e.set_defaults(func=cmd_exam)
 
-    m = sub.add_parser("mini", help="ask a question with your own mini harness (Step 4)")
+    m = sub.add_parser("mini", help="ask a question with your own mini harness (Step 3)")
     m.add_argument("question", nargs="+")
     m.set_defaults(func=cmd_mini)
 
     k = sub.add_parser("kaggle", help="start DaMi's brain on Kaggle")
     k.add_argument("action", choices=["start", "status", "stop", "partner"],
-                   help="partner: find your partner's tunnel URL (Step 6) and save it as OLLAMA_HOST_B")
+                   help="partner: find your partner's tunnel URL (Step 5) and save it as OLLAMA_HOST_B")
     k.add_argument("--url", help="partner: set OLLAMA_HOST_B to this URL instead of reading the partner's log")
     k.add_argument("--model", help="Ollama model (default: OLLAMA_MODEL from .env)")
     k.add_argument("--idle-minutes", type=int, default=20)
@@ -221,7 +232,7 @@ def main(argv=None) -> int:
     k.add_argument("--wait-minutes", type=int, default=120, help="start: how long to wait for the brain (Kaggle can queue for a long time)")
     k.set_defaults(func=cmd_kaggle)
 
-    du = sub.add_parser("duo", help="Step 6: a driver agent and its sub-agents on two brains")
+    du = sub.add_parser("duo", help="Step 5: a driver agent and its sub-agents on two brains")
     du.add_argument("action", choices=["run", "journal", "score", "reset"])
     du.add_argument("--evaluations", type=int, default=6, help="run: evaluation budget of the session")
     du.add_argument("--spawns", type=int, default=4, help="run: how many sub-agents the driver may start")
