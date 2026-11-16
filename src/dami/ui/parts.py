@@ -23,6 +23,7 @@ from strands.hooks import (
 )
 
 from dami.config import REPO_ROOT, Settings
+from dami.hooks.recorder import image_paths
 from dami.model import NGROK_HEADERS
 
 LOGO = Path(__file__).parent / "logo" / "dami.png"
@@ -35,13 +36,13 @@ def example_prompts() -> dict[str, list[str]]:
     exam = yaml.safe_load((REPO_ROOT / "exam" / "questions.yaml").read_text(encoding="utf-8"))
     return {
         "Step 1": ["What is your name?", "What can you do for me?", "Which tables do we have?"],
-        "Step 2": [q["question"] for q in exam],
-        "Step 3": ["How many customer segments are there? Plot them.",
+        "Exam": [q["question"] for q in exam],
+        "Step 2": ["How many customer segments are there? Plot them.",
                    "Group the products into families and plot them.",
                    "Some presses act strange. Find unusual sensor readings.",
                    "Is there anything suspicious in the card transactions?"],
-        "Step 4": ["Describe every table we have.", "Cluster the marketing campaigns, then plot those clusters."],
-        "Step 5": ["Find outliers in the sensors table with micro-clusters.",
+        "Step 3": ["Describe every table we have.", "Cluster the marketing campaigns, then plot those clusters."],
+        "Step 4": ["Find outliers in the sensors table with micro-clusters.",
                    "Which clustering method fits the marketing table best, and why?",
                    "Write a short data mining report on the products table."],
     }

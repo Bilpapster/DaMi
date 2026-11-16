@@ -6,6 +6,8 @@ Use these files as evidence in your JOURNAL.md.
 """
 
 import json
+import re
+import shutil
 import time
 import uuid
 from datetime import datetime
@@ -28,6 +30,19 @@ def _text_of(content) -> str:
         elif isinstance(block, dict) and "json" in block:
             parts.append(json.dumps(block["json"]))
     return "\n".join(parts)
+
+
+SAVED_PNG = r'"saved_to":\s*"([^"]+\.png)"'
+
+
+def image_paths(run: dict) -> list[str]:
+    """The plots of a run (and that still exist): the recorder's copies, or the original files for older runs."""
+    found = []
+    for tool in run.get("tools", []):
+        for path in tool.get("plots") or re.findall(SAVED_PNG, tool.get("output_preview", "")):
+            if Path(path).exists():
+                found.append(path)
+    return found
 
 
 class RunRecorder(HookProvider):
@@ -65,6 +80,9 @@ class RunRecorder(HookProvider):
             "output_chars": len(output),
             "output_preview": output[:500],
         }
+        plots = [self._keep_plot(path) for path in re.findall(SAVED_PNG, output) if Path(path).exists()]
+        if plots:
+            record["plots"] = plots
         self._tools.append(record)
         self._write(record)
 
@@ -96,6 +114,13 @@ class RunRecorder(HookProvider):
         self.last_run = {"run_id": self.run_id, "tools": list(self._tools), **summary}
 
     # --- helpers ---------------------------------------------------------
+    def _keep_plot(self, path: str) -> str:
+        """Copy a plot into runs/plots/: the plot tools reuse file names, so a later run would overwrite it."""
+        copy = self.runs_dir / "plots" / f"{self.run_id}-{len(self._tools) + 1}-{Path(path).name}"
+        copy.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(path, copy)
+        return str(copy)
+
     def _write(self, record: dict) -> None:
         self.runs_dir.mkdir(parents=True, exist_ok=True)
         record = {"run_id": self.run_id, "time": datetime.now().isoformat(timespec="seconds"), **record}

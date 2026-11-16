@@ -3,7 +3,7 @@
 The agent starts this server as a child process and talks to it over stdin/stdout.
 You can also start it alone and test the tools without any LLM:
 
-    mcp dev src/dami/mcp_server/server.py
+    dami inspect
 """
 
 from mcp.server.mcpserver import MCPServer

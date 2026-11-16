@@ -5,6 +5,7 @@ each other. The exam does not grade the answers: you do (see the "correct" colum
 """
 
 import csv
+import os
 import time
 from datetime import datetime
 
@@ -12,6 +13,7 @@ import yaml
 
 from dami.agent import build_agent
 from dami.config import REPO_ROOT, get_settings
+from dami.hooks.recorder import image_paths
 
 QUESTIONS = REPO_ROOT / "exam" / "questions.yaml"
 
@@ -24,6 +26,8 @@ def run(tag: str, repeat: int = 1, only: list[str] | None = None) -> int:
 
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     out = s.runs_dir / f"exam-{tag}-{stamp}.csv"
+    report = [f"# DaMi exam '{tag}' ({stamp}, model {s.model_id})\n",
+              "**Read the answers here, grade them in the `correct` column of the `.csv` file (yes / partly / no), or do both in the UI (`dami ui` → Exam results).**\n"]
     s.runs_dir.mkdir(parents=True, exist_ok=True)
     rows = []
     print(f"📝 DaMi exam '{tag}': {len(questions)} questions x {repeat} repeat(s), model {s.model_id}\n")
@@ -47,9 +51,17 @@ def run(tag: str, repeat: int = 1, only: list[str] | None = None) -> int:
                 "model_calls": run.get("model_calls", 0), "tool_calls": len(tools),
                 "input_tokens": usage.get("inputTokens", 0), "output_tokens": usage.get("outputTokens", 0),
                 "tools": " > ".join(tools), "error": error,
-                "answer": answer.replace("\n", " ")[:400], "correct": "",
+                "answer": answer.replace("\n", " "), "correct": "",
             }
             rows.append(row)
+            report += [f"## {q['id']} #{rep}: {q['question']}\n",
+                       f"{row['latency_s']} s · {row['model_calls']} model calls · {row['tool_calls']} tool calls · "
+                       f"{row['input_tokens']} input / {row['output_tokens']} output tokens  ",
+                       f"Tools: {row['tools'] or '-'}\n",
+                       f"**Error:** {error}\n" if error else "",
+                       f"{answer or '_(No answer: DaMi ended without writing any text.)_'}\n"]
+            # Paths relative to the report, so that markdown viewers show the plots.
+            report += [f"![Plot {n}]({os.path.relpath(p, s.runs_dir)})\n" for n, p in enumerate(image_paths(run), 1)]
             print(f"{q['id']} #{rep}  {took:6.1f}s  tools: {row['tools'] or '-'}")
             print(f"     {(error or row['answer'])[:160]}\n")
             agent.cleanup()
@@ -58,5 +70,8 @@ def run(tag: str, repeat: int = 1, only: list[str] | None = None) -> int:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         writer.writeheader()
         writer.writerows(rows)
-    print(f"📄 Summary: {out}\n   Open it, and fill the 'correct' column (yes / partly / no).")
+    out.with_suffix(".md").write_text("\n".join(report), encoding="utf-8")
+    print(f"📄 Summary: {out}\n📖 Full answers: {out.with_suffix('.md')}\n"
+          "   Read the .md, grade in the .csv (correct column: yes / partly / no),\n"
+          "   or do both in the UI: dami ui, then turn on 'Exam results' in the sidebar.")
     return 0

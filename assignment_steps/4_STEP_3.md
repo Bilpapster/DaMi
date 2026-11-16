@@ -1,10 +1,10 @@
-# 📦 DaMi Step 4: Opening the black box!
+# 📦 DaMi Step 3: Opening the black box!
 
 > Diving into DaMi's internals.
 
 ## Prerequisites
 
-Please make sure you have completed Steps 1, 2, and 3 before starting this one. This step also requires a local docker installation, so if your team has decided to not install docker (for example, Windows users without WSL) feel free to skip this step.
+Please make sure you have completed Steps 1 and 2 before starting this one. This step also requires a local docker installation, so if your team has decided to not install docker (for example, Windows users without WSL) feel free to skip this step.
 
 ## 🎬 DO
 
@@ -39,7 +39,7 @@ Please make sure you have completed Steps 1, 2, and 3 before starting this one. 
 
 1. Looking at the Langfuse traces, how many times is the system prompt included in the messages of a single conversation? What does this mean for the context length of every next human message in a single conversation with DaMi?
 
-1. Browse through DaMi's tool calls, reasoning, and responses. Find at least one example where DaMi takes a wrong or unnecessary step. Can you write a search filter to identify whether the specific pattern has occurred more than once?
+1. How are hooks plugged into DaMi? Find where the existing hooks are given to the agent, and how a hook chooses which events it reacts to. If you wanted to add a new hook (for example, the tool-call budget in `src/dami/hooks/budget.py`), where would you plug it in?
 
 1. Why is the `recorder` hook computing fewer tokens than Grafana and Langfuse? How is this connected with your answer to question 3?
 
@@ -47,8 +47,8 @@ Please make sure you have completed Steps 1, 2, and 3 before starting this one. 
 
 ## 📝 RECAP
 
-Congratulations! You have successfully completed the fourth step of the assignment. Here is what you did in this step:
+Congratulations! You have successfully completed the third step of the assignment. Here is what you did in this step:
 1. You spun up docker containers running Grafana and Langfuse; two widely used tools for Agentic AI observability
 1. You monitored in real time DaMi's operations through these dedicated tools
-1. You effectively used these tools to identify a failure mode of DaMi and took action to mitigate it
+1. You found how hooks plug into DaMi and what they measure, and fixed the `recorder` hook so that its numbers agree with Grafana and Langfuse
 1. You re-invented the wheel building an Agentic harness of your own, understanding what out-of-the-box harnesses (such as Strands) silently offer

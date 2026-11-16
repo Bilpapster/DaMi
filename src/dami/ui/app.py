@@ -4,14 +4,13 @@ Page flow only; the building blocks (live progress, status checks, "under the ho
 are in parts.py, the colours in .streamlit/config.toml and style.css.
 """
 
-import re
 from pathlib import Path
 
 import streamlit as st
 
 from dami.agent import build_agent
 from dami.config import get_settings
-from dami.ui import parts
+from dami.ui import exam_view, parts
 
 st.set_page_config(page_title="DaMi - The data mining agent", page_icon=str(parts.LOGO), layout="wide")
 st.html(Path(__file__).with_name("style.css"))
@@ -36,15 +35,6 @@ def reload_dami() -> None:
         del state.agent
     state.history = []
     st.cache_data.clear()
-
-
-def image_paths(run: dict) -> list[str]:
-    found = []
-    for tool in run.get("tools", []):
-        for match in re.findall(r'"saved_to":\s*"([^"]+\.png)"', tool.get("output_preview", "")):
-            if Path(match).exists():
-                found.append(match)
-    return found
 
 
 def show_images(paths: list[str]) -> None:
@@ -94,6 +84,8 @@ with st.sidebar:
 
     st.toggle(":material/menu_book: Assignment steps", key="show_steps",
               help="Read the assignment steps (assignment_steps/) in a panel next to the chat.")
+    st.toggle(":material/fact_check: Exam results", key="show_exam",
+              help="Read and grade the answers of your `dami exam` runs, and compare the runs.")
 
     st.divider()
     obs = parts.observability_status(settings.victoriametrics_url, settings.langfuse_host)
@@ -110,6 +102,11 @@ st.caption("Ask DaMi about your data: customers, products, marketing, sensors, t
 
 if state.pop("running", False):
     st.warning("The last run was interrupted. Start a **New chat** if DaMi seems confused.", icon=":material/warning:")
+
+# The exam results replace the chat while they are open (they do not need DaMi's brain).
+if state.get("show_exam"):
+    exam_view.exam_panel(settings)
+    st.stop()
 
 # The assignment steps panel (right), next to the chat (left).
 if state.get("show_steps"):
@@ -164,7 +161,7 @@ with chat:
             state.running = False
             run = agent.dami_recorder.last_run or {}
             snap = parts.snapshot(agent, live, run, before) if not error else None
-            images = image_paths(run) if not error else []
+            images = parts.image_paths(run) if not error else []
 
             st.markdown(answer)
             if error:

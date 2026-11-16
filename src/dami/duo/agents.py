@@ -1,9 +1,9 @@
-"""Step 6: the driver (brain A) spawns sub-agents (brain B) that inspect the data and propose cleaning plans.
+"""Step 5: the driver (brain A) spawns sub-agents (brain B) that inspect the data and propose cleaning plans.
 
     dami duo run           # one session of the driver
     dami duo journal       # print the journal (the memory that survives sessions)
 
-The driver never sees the data (black-box mode, as in LLM-AutoDP): it sees only the sub-agents'
+The driver never sees the data (black-box mode): it sees only the sub-agents'
 proposals, the scores of the deterministic evaluator, and the journal.
 """
 
@@ -13,10 +13,11 @@ from datetime import datetime
 
 from strands import Agent, tool
 from strands.agent.conversation_manager import SlidingWindowConversationManager
+from strands.types.exceptions import MaxTokensReachedException
 
 from dami.config import PACKAGE_DIR, get_settings
 from dami.duo import evaluate
-from dami.duo.cleaning import CleaningPlan, apply_plan
+from dami.duo.cleaning import CleaningPlan, apply_plan, parse_plan
 from dami.duo.journal import Journal, plan_summary
 from dami.hooks.metrics import VictoriaMetricsHook
 from dami.hooks.recorder import RunRecorder
@@ -30,14 +31,18 @@ SUB_AGENT_TOOLKIT = """
 ## Your toolkit (added by DaMi; you cannot change it)
 You may inspect the table `factory_line` with your tools. Then answer with a cleaning plan: an ORDERED list
 of steps. Allowed steps (all parameters are optional unless the step needs them):
-- drop_duplicates
+- drop_duplicates()
 - linear_fix(column, multiply, add, machine, only_below, only_above): new = old * multiply + add, only on the chosen rows
 - fill_missing(column, method = median | mean | zero)
 - mark_stuck_as_missing(column, min_run): equal values repeated min_run times in a row become missing
 - swap_columns_where(column, other_column, machine): swap the two values where column > other_column
 - clip(column, low, high)
 - drop_rows_where(column, only_below, only_above, machine)
-Order matters. Explain your plan in 1-3 sentences in `rationale`.
+Order matters. When you are done, answer in exactly this format: one step per line, parameters as name=value.
+PLAN:
+1. step_name(parameter=value, parameter=value)
+2. step_name(parameter=value)
+RATIONALE: why these steps, in 1-3 sentences.
 """
 
 
@@ -143,8 +148,13 @@ class Session:
                         hooks=[recorder, VictoriaMetricsHook(settings, session=f"duo-sub-{s.name}")],
                         trace_attributes={"session.id": s.name, "dami.role": "sub-agent"})
             try:
-                result = sub(task, structured_output_model=CleaningPlan)
-                plan = result.structured_output
+                answer = str(sub(task))
+                try:
+                    plan = parse_plan(answer)
+                except ValueError as e:
+                    # One second chance: small models often get the format almost right.
+                    plan = parse_plan(str(sub(f"I could not read your plan: {e} Answer again in the exact "
+                                              "PLAN: / RATIONALE: format of your toolkit.")))
             except Exception as e:  # noqa: BLE001 - tell the driver what happened
                 s.spawns[spawn_id] = {"system_prompt": system_prompt, "error": str(e)}
                 return f"{spawn_id} failed to produce a valid plan: {type(e).__name__}: {e}"
@@ -236,7 +246,8 @@ def run_session(max_evaluations: int = 6, max_spawns: int = 4, name: str | None 
     prompt = (PACKAGE_DIR / "prompts" / "duo_driver.md").read_text(encoding="utf-8").format(
         max_evaluations=max_evaluations, max_spawns=max_spawns)
     driver = Agent(name="driver", model=make_model(), tools=session.driver_tools(), system_prompt=prompt,
-                   conversation_manager=SlidingWindowConversationManager(window_size=40), callback_handler=None,
+                   # Ollama silently fills the context instead of raising an overflow, so trim before every model call.
+                   conversation_manager=SlidingWindowConversationManager(window_size=16, per_turn=True), callback_handler=None,
                    hooks=[RunRecorder(settings.runs_dir, session=session.name),
                           VictoriaMetricsHook(settings, session=f"duo-driver-{session.name}")],
                    trace_attributes={"session.id": session.name, "dami.role": "driver"})
@@ -251,7 +262,10 @@ def run_session(max_evaluations: int = 6, max_spawns: int = 4, name: str | None 
             print(f"   ↻ driver stopped early; nudging it ({left_eval} evaluations, {left_spawn} spawns left)")
             answer = str(driver(f"Continue now with a tool call. You have {left_eval} evaluations and {left_spawn} spawns "
                                 "left. When you are done, write lessons and next steps, then answer with FINISHED."))
-        print(f"\n🧭 Driver: {answer.strip()}\n")
+    except MaxTokensReachedException:
+        # Scores and lessons are already in the journal; only the driver's last answer is lost.
+        answer = "(the driver ran out of context; the session ends here)"
     finally:
         driver.cleanup()
+    print(f"\n🧭 Driver: {answer.strip()}\n")
     return session

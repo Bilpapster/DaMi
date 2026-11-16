@@ -49,7 +49,14 @@ This step requires having set up uv, your Kaggle and ngrok accounts, as well as 
     2. What other information does DaMi get on startup? Where does this information live in the code base?
     3. Can you make DaMi always respond with just a Haiku poem, no matter what the user asks? How would you do that? (Note: every time you change DaMi's system prompt, make sure to stop the UI command with Ctrl+C and restart it with `dami ui` so that your changes take effect).
 
-3. Try keeping a long conversation with DaMi (>10 questions in the same chat). Do you notice any difference between its answers to the first questions compared to the last ones? If so, what could explain that?
+3. Find where DaMi is put together in the code base.
+    1. Where is the agent created? Which model, system prompt and tools does it get there?
+    2. Where do DaMi's tools live? How does the agent find out which tools it has?
+    3. Find the conversation manager of the agent. What does it do, and how many messages of a conversation does DaMi keep?
+
+4. Test DaMi's memory. In a new chat, tell DaMi something about you (e.g., your team name). Then ask it 4-5 other questions, some of which need tools (e.g., "Describe the customers table"). Finally, ask DaMi what your team name is.
+    1. Does DaMi remember it? Use your answer to question 3.3 to explain why.
+    2. Does DaMi forget sooner when your questions need tools? Why?
 
 ## 📝 RECAP
 
@@ -57,4 +64,5 @@ Congratulations! You have successfully completed the first step of the assignmen
 1. You started a Python Notebook running an LLM on Kaggle.
 2. You communicated with this LLM using both the command line and a UI.
 3. You discovered where DaMi's system prompt lives and experimented with manipulating it.
-4. You poked around the limits of DaMi's context window.
+4. You found where DaMi's agent, tools and conversation manager are configured.
+5. You tested how much of a conversation DaMi remembers, and why.
