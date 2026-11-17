@@ -1,7 +1,7 @@
 """The deterministic evaluator of Step 5 (no LLM): clean -> fixed outlier detector -> F1 on hidden labels.
 
-The detector never changes (IsolationForest on the standardized sensor columns), so the only way to a
-better score is better data. Scores are reported relative to "no cleaning", like s = r - r0 in LLM-AutoDP.
+The detector never changes (a robust z-score per sensor column), so the only way to a better score is
+better data. Scores are reported relative to "no cleaning", like s = r - r0 in LLM-AutoDP.
 
 Rules that make cheating useless:
 - The score is computed on the ORIGINAL row ids. A row that a plan drops counts as "not flagged":
@@ -14,15 +14,14 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import IsolationForest
 from sklearn.metrics import f1_score, precision_score, recall_score
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler
 
 from dami.config import get_settings
 from dami.duo.cleaning import CleaningPlan, apply_plan
 
 FEATURES = ["temperature_c", "pressure_kpa", "vibration_mm_s", "power_kw"]
-CONTAMINATION = 0.01
+Z_THRESHOLD = 5  # far beyond normal sensor noise
 
 
 def table_dir() -> Path:
@@ -48,12 +47,17 @@ class Score:
 
 
 def detect(df: pd.DataFrame) -> pd.Series:
-    """The fixed detector: returns flagged row_ids (a row is flagged if any of its copies is flagged)."""
+    """The fixed detector: returns flagged row_ids (a row is flagged if any of its copies is flagged).
+
+    A row is flagged when one of its sensors is far from that sensor's typical value: a robust z-score (median
+    and IQR, so the dirt itself does not hide the anomalies) above Z_THRESHOLD. A fixed threshold, not a fixed
+    share of rows: every dirty row that a plan repairs is one false alarm less, so each good step pays off.
+    """
     usable = df.dropna(subset=FEATURES)
     if len(usable) < 50:
         return pd.Series(dtype=bool)
-    x = StandardScaler().fit_transform(usable[FEATURES].to_numpy())
-    flags = IsolationForest(contamination=CONTAMINATION, n_estimators=200, random_state=0).fit_predict(x) == -1
+    z = np.abs(RobustScaler().fit_transform(usable[FEATURES].to_numpy())).max(axis=1)
+    flags = z > Z_THRESHOLD
     return pd.Series(flags, index=usable["row_id"].to_numpy()).groupby(level=0).any()
 
 

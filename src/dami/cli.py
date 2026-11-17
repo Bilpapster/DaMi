@@ -234,8 +234,8 @@ def main(argv=None) -> int:
 
     du = sub.add_parser("duo", help="Step 5: a driver agent and its sub-agents on two brains")
     du.add_argument("action", choices=["run", "journal", "score", "reset"])
-    du.add_argument("--evaluations", type=int, default=6, help="run: evaluation budget of the session")
-    du.add_argument("--spawns", type=int, default=4, help="run: how many sub-agents the driver may start")
+    du.add_argument("--evaluations", type=int, default=4, help="run: evaluation budget of the session")
+    du.add_argument("--spawns", type=int, default=2, help="run: how many sub-agents the driver may start")
     du.add_argument("--session", help="run: a name for the session")
     du.add_argument("--plan", help="score: a JSON file with a cleaning plan")
     du.set_defaults(func=cmd_duo)

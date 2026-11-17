@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from strands import Agent, tool
+from strands.hooks import BeforeToolCallEvent
 from strands.agent.conversation_manager import SlidingWindowConversationManager
 from strands.types.exceptions import MaxTokensReachedException
 
@@ -236,9 +237,10 @@ class Session:
 
 
 MAX_NUDGES = 8  # harness: how often the driver is told to continue when it stops too early
+MAX_DRIVER_TOOL_CALLS = 40  # harness: a small model can keep calling tools after its budget is used up
 
 
-def run_session(max_evaluations: int = 6, max_spawns: int = 4, name: str | None = None) -> Session:
+def run_session(max_evaluations: int = 4, max_spawns: int = 2, name: str | None = None) -> Session:
     settings = get_settings()
     setup_tracing(settings)
     session = Session(name=name or f"duo-{datetime.now():%Y%m%d-%H%M%S}", max_evaluations=max_evaluations,
@@ -251,6 +253,17 @@ def run_session(max_evaluations: int = 6, max_spawns: int = 4, name: str | None 
                    hooks=[RunRecorder(settings.runs_dir, session=session.name),
                           VictoriaMetricsHook(settings, session=f"duo-driver-{session.name}")],
                    trace_attributes={"session.id": session.name, "dami.role": "driver"})
+    tool_calls = 0
+
+    def stop_runaway_driver(event: BeforeToolCallEvent) -> None:
+        nonlocal tool_calls
+        tool_calls += 1
+        if tool_calls > MAX_DRIVER_TOOL_CALLS:
+            # FINISHED also ends the nudge loop below.
+            event.agent.cancel(message=f"FINISHED (stopped by the harness after {MAX_DRIVER_TOOL_CALLS} tool calls)",
+                               after_current_tools=True)
+
+    driver.add_hook(stop_runaway_driver)
     try:
         answer = str(driver(f"Start session {session.name}. Begin by reading the journal."))
         for _ in range(MAX_NUDGES):

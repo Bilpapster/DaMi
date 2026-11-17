@@ -6,6 +6,10 @@
 
 This step requires having set up uv, your Kaggle and ngrok accounts, as well as your `.env` file with the appropriate variables. If you have not completed the required installations, please stop here and complete those first as described in the repository's README before continuing. The rest of this document assumes that the set up has been successfully completed. All commands should run from the root directory of the project.
 
+## 📓 Your notes
+
+Throughout the assignment you will run experiments, observe DaMi, and answer questions. Keep notes as you go: they will make your answers and your final presentation much easier. The repository has a notebook for this, `JOURNAL.md`, at its root. You can use it to write down your observations, together with the evidence for each one (a run id from `runs/`, an exam file, a screenshot or a trace). Using it is optional: if you prefer, keep your notes in your own personal notes instead.
+
 ## 🎬 DO
 
 0. Make sure you have activated your virtual environment with `source .venv/bin/activate` (Linux, MacOS)  or `.venv\Scripts\activate` (Windows).

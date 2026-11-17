@@ -73,7 +73,7 @@ def run(question: str, max_steps: int = 8, verbose: bool = True) -> str:
             messages=messages,
             tools=list(TOOLS.values()),
             think=False,
-            options={"temperature": 0.2},
+            options={"temperature": 0.2, "num_ctx": s.context_length},
         )
         message = response.message
         if verbose:
